@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+
+# Environment files (contain secrets)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor & IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# Prisma generated
+**/prisma/*.generated.ts
+
+# Vercel deployment cache
+.vercel/
+
+# Cache directories
+.cache/
+.turbo/
+
+# Test coverage
+coverage/
+
+# Local-only config files
+*.local
+
+documents/

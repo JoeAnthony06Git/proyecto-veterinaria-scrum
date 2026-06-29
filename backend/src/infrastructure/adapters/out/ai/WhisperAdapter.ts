@@ -1,0 +1,1 @@
+﻿// Adaptador IA - WhisperAdapter.ts

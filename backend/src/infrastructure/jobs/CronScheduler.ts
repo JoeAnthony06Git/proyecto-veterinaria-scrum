@@ -1,0 +1,1 @@
+﻿// Job programado - CronScheduler.ts

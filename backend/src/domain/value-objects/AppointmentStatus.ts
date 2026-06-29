@@ -1,0 +1,1 @@
+﻿// Value Object - AppointmentStatus.ts

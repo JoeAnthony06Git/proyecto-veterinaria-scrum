@@ -1,0 +1,1 @@
+﻿// Adaptador Mensajería - WhatsAppApiAdapter.ts

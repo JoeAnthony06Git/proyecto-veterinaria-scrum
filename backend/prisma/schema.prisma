@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  TUTOR
+  DOCTOR
+}
+
+enum AppointmentStatus {
+  PROGRAMADA
+  EN_CURSO
+  COMPLETADA
+  CANCELADA
+}
+
+enum UrgencyLevel {
+  BAJA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum TriageStatus {
+  PENDIENTE
+  REVISADO
+  ATENDIDO
+}
+
+enum PrescriptionStatus {
+  PENDIENTE
+  INTERPRETADA
+}
+
+enum OrderStatus {
+  PENDIENTE
+  CONFIRMADO
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  lastName  String
+  phone     String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pets               Pet[]
+  appointments       Appointment[] @relation("TutorAppointments")
+  doctorAppointments Appointment[] @relation("DoctorAppointments")
+  doctorInfo         DoctorInfo?
+  cartItems          CartItem[]
+  orders             Order[]
+  triages            TriageReport[]
+  consultations      MedicalRecord[]
+  prescriptions      Prescription[]
+}
+
+model DoctorInfo {
+  userId    String @id
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty String
+  rating    Float  @default(0)
+}
+
+model Pet {
+  id        String   @id @default(uuid())
+  name      String
+  species   String
+  breed     String
+  sex       String
+  birthDate DateTime
+  weightKg  Float
+  color     String
+  tutorId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tutor         User             @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  vaccines      VaccineRecord[]
+  appointments  Appointment[]
+  medicalRecords MedicalRecord[]
+  prescriptions Prescription[]
+  triages       TriageReport[]
+}
+
+model VaccineRecord {
+  id       String   @id @default(uuid())
+  petId    String
+  name     String
+  date     DateTime
+  nextDose DateTime
+  status   String
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model Service {
+  id          String @id @default(uuid())
+  code        String @unique
+  label       String
+  description String
+
+  appointments Appointment[]
+}
+
+model Appointment {
+  id        String           @id @default(uuid())
+  petId     String
+  tutorId   String
+  doctorId  String
+  serviceId String
+  date      DateTime
+  time      String
+  status    AppointmentStatus @default(PROGRAMADA)
+  createdAt DateTime         @default(now())
+
+  pet     Pet     @relation(fields: [petId], references: [id], onDelete: Cascade)
+  tutor   User    @relation("TutorAppointments", fields: [tutorId], references: [id], onDelete: Cascade)
+  doctor  User    @relation("DoctorAppointments", fields: [doctorId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+}
+
+model MedicalRecord {
+  id              String   @id @default(uuid())
+  petId           String
+  doctorId        String
+  date            DateTime @default(now())
+  reason          String?
+  symptoms        String
+  diagnosis       String
+  treatment       String
+  transcribedText String?
+
+  pet           Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+  doctor        User           @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  prescriptions Prescription[]
+}
+
+model Prescription {
+  id              String             @id @default(uuid())
+  petId           String
+  doctorId        String
+  medicalRecordId String?
+  date            DateTime           @default(now())
+  originalText    String
+  status          PrescriptionStatus @default(PENDIENTE)
+  aiInterpretation Json?
+
+  pet           Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+  doctor        User           @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  medicalRecord MedicalRecord? @relation(fields: [medicalRecordId], references: [id], onDelete: SetNull)
+}
+
+model Product {
+  id       String @id @default(uuid())
+  name     String
+  price    Float
+  category String
+  imageUrl String?
+  stock    Int    @default(0)
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+}
+
+model CartItem {
+  id        String @id @default(uuid())
+  userId    String
+  productId String
+  quantity  Int    @default(1)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id        String      @id @default(uuid())
+  userId    String
+  total     Float
+  status    OrderStatus @default(PENDIENTE)
+  createdAt DateTime    @default(now())
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model TriageReport {
+  id         String        @id @default(uuid())
+  petId      String
+  tutorId    String
+  symptoms   String
+  duration   String
+  painLevel  String
+  urgency    UrgencyLevel
+  aiAnalysis String?
+  status     TriageStatus  @default(PENDIENTE)
+  createdAt  DateTime      @default(now())
+
+  pet  Pet  @relation(fields: [petId], references: [id], onDelete: Cascade)
+  tutor User @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+}

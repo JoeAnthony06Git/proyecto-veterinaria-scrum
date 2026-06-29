@@ -1,0 +1,13 @@
+{
+  "name": "proyecto-veterinaria",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev": "pnpm run dev:frontend",
+    "build:frontend": "pnpm --filter frontend build",
+    "build": "pnpm run build:frontend",
+    "lint:frontend": "pnpm --filter frontend lint",
+    "lint": "pnpm run lint:frontend"
+  }
+}
