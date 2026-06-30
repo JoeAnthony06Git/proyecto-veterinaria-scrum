@@ -1,1 +1,6 @@
-﻿// Value Object - AppointmentStatus.ts
+﻿export enum EstadoCita {
+  PROGRAMADA = 'PROGRAMADA',
+  EN_CURSO = 'EN_CURSO',
+  COMPLETADA = 'COMPLETADA',
+  CANCELADA = 'CANCELADA'
+}
