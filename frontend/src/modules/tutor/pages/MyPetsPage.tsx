@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { usePetStore } from '../../../stores/petStore';
 import { Link } from 'react-router-dom';
-import { PetFormModal } from '../components/PetFormModal'; // El componente que crearemos después
+import { PetFormModal } from '../components/PetFormModal';
 
 export function MyPetsPage() {
   // 1. Traemos los datos y funciones de tu Store
@@ -92,7 +92,7 @@ export function MyPetsPage() {
       )}
 
       {/* 6. Modal para crear mascota (lo crearemos a continuación) */}
-      {mostrarModal && <PetFormModal alCerrar={() => setMostrarModal(false)} />}
+      {mostrarModal && <PetFormModal onClose={() => setMostrarModal(false)} />}
     </div>
   );
 }

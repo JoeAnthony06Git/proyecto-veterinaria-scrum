@@ -25,16 +25,17 @@ export interface LoginResponse {
 
 export interface PetDto {
   id: string;
-  name: string;
-  species: string;
-  breed: string;
-  sex: string;
-  age: string;
-  weight: string;
-  color: string;
+  nombre: string;    // Antes decía 'name'
+  especie: string;   // Antes decía 'species'
+  raza: string;      // Antes decía 'breed'
+  sexo: string;
+  pesoKg: number;    // Antes decía 'weightKg'
+  tutorId: string;
 }
 
 export interface PetDetailDto extends PetDto {
+  fechaNacimiento: string;
+  color: string;
   vaccines: VaccineRecordDto[];
   consultations: ConsultationSummaryDto[];
 }
