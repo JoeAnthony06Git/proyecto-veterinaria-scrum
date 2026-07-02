@@ -1,6 +1,5 @@
-﻿// Repositorio - PrismaPetRepository.ts
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../PrismaService'; // Ajusta la ruta si es necesario
+﻿import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../PrismaService';
 import { IMascotaRepository } from '../../../../../domain/ports/out/database/IPetRepository';
 import { Mascota } from '../../../../../domain/entities/Pet';
 
@@ -8,9 +7,8 @@ import { Mascota } from '../../../../../domain/entities/Pet';
 export class PrismaMascotaRepository implements IMascotaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  // 1. CREAR MASCOTA
   async crear(mascota: Mascota): Promise<Mascota> {
-    const creada = await this.prisma.pet.create({
+    const raw = await this.prisma.pet.create({
       data: {
         id: mascota.id,
         name: mascota.nombre,
@@ -23,69 +21,51 @@ export class PrismaMascotaRepository implements IMascotaRepository {
         tutorId: mascota.tutorId,
       },
     });
-    return this.mapearADominio(creada);
+    return this.toDomain(raw);
   }
 
-  // 2. LISTAR POR TUTOR (Para tu Dashboard)
-  async listarPorTutor(tutorId: string): Promise<Mascota[]> {
-    const pets = await this.prisma.pet.findMany({
-      where: { tutorId },
-      orderBy: { createdAt: 'desc' }
-    });
-    return pets.map(pet => this.mapearADominio(pet));
-  }
-
-  // 3. BUSCAR POR ID (Para ver el perfil)
-  async buscarPorId(id: string): Promise<Mascota | null> {
-    const pet = await this.prisma.pet.findUnique({
-      where: { id },
-      // Podrías incluir vacunas aquí si quieres en el futuro:
-      // include: { vaccines: true } 
-    });
-    
-    if (!pet) return null;
-    return this.mapearADominio(pet);
-  }
-
-  // 4. ACTUALIZAR
-  async actualizar(id: string, datos: Partial<Mascota>): Promise<Mascota> {
-    const actualizada = await this.prisma.pet.update({
+  async actualizar(id: string, mascota: Partial<Mascota>): Promise<Mascota> {
+    const raw = await this.prisma.pet.update({
       where: { id },
       data: {
-        name: datos.nombre,
-        species: datos.especie,
-        breed: datos.raza,
-        sex: datos.sexo,
-        birthDate: datos.fechaNacimiento,
-        weightKg: datos.pesoKg,
-        color: datos.color,
+        name: mascota.nombre,
+        species: mascota.especie,
+        breed: mascota.raza,
+        sex: mascota.sexo,
+        birthDate: mascota.fechaNacimiento,
+        weightKg: mascota.pesoKg,
+        color: mascota.color,
       },
     });
-    return this.mapearADominio(actualizada);
+    return this.toDomain(raw);
   }
 
-  // 5. ELIMINAR
   async eliminar(id: string): Promise<void> {
-    await this.prisma.pet.delete({
-      where: { id },
-    });
+    await this.prisma.pet.delete({ where: { id } });
   }
 
-  /**
-   * MAPPER: El "traductor" de Infraestructura (Inglés/Prisma) 
-   * a Dominio (Español/TypeScript puro)
-   */
-  private mapearADominio(pet: any): Mascota {
+  async buscarPorId(id: string): Promise<Mascota | null> {
+    const raw = await this.prisma.pet.findUnique({ where: { id } });
+    if (!raw) return null;
+    return this.toDomain(raw);
+  }
+
+  async listarPorTutor(tutorId: string): Promise<Mascota[]> {
+    const raws = await this.prisma.pet.findMany({ where: { tutorId } });
+    return raws.map(r => this.toDomain(r));
+  }
+
+  private toDomain(raw: any): Mascota {
     return new Mascota(
-      pet.id,
-      pet.name,
-      pet.species,
-      pet.breed,
-      pet.sex as any,
-      pet.birthDate,
-      pet.weightKg,
-      pet.color,
-      pet.tutorId
+      raw.id,
+      raw.name,
+      raw.species,
+      raw.breed,
+      raw.sex as 'Macho' | 'Hembra',
+      raw.birthDate,
+      raw.weightKg,
+      raw.color,
+      raw.tutorId
     );
   }
 }
