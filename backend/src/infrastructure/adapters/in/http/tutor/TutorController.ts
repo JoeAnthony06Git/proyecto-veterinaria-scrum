@@ -27,12 +27,12 @@ export class TutorController {
     private readonly obtenerCitasUseCase: ObtenerCitasUseCase,
     private readonly prisma: PrismaService,
 
-    // Inyecciones de Mascotas (Brianna)
-    private readonly createPetUC: CreatePetUseCase,
-    private readonly getPetsUC: GetPetsUseCase,
-    private readonly getPetByIdUC: GetPetByIdUseCase,
-    private readonly updatePetUC: UpdatePetUseCase,
-    private readonly deletePetUC: DeletePetUseCase
+    // Inyecciones de Mascotas (Brianna) 
+    private readonly createPetUseCase: CreatePetUseCase,
+    private readonly getPetsUseCase: GetPetsUseCase,
+    private readonly getPetByIdUseCase: GetPetByIdUseCase,
+    private readonly updatePetUseCase: UpdatePetUseCase,
+    private readonly deletePetUseCase: DeletePetUseCase
   ) {}
 
   // =========================================================================
@@ -85,31 +85,31 @@ export class TutorController {
   }
 
   // =========================================================================
-  // ENDPOINTS DE MASCOTAS (Brianna)
+  // ENDPOINTS DE MASCOTAS (Brianna) 
   // =========================================================================
 
-  @Post('pets')
-  async crear(@Body() body: any, @CurrentUser('id') tutorId: string) {
-    return await this.createPetUC.execute(body, tutorId);
-  }
-
   @Get('pets')
-  async listar(@CurrentUser('id') tutorId: string) {
-    return await this.getPetsUC.execute(tutorId);
+  async listarMascotas(@CurrentUser('id') tutorId: string) {
+    return await this.getPetsUseCase.execute(tutorId);
   }
 
   @Get('pets/:id')
-  async obtenerPorId(@Param('id') id: string) {
-    return await this.getPetByIdUC.execute(id);
+  async obtenerMascota(@Param('id') id: string) {
+    return await this.getPetByIdUseCase.execute(id);
+  }
+
+  @Post('pets')
+  async crearMascota(@CurrentUser('id') tutorId: string, @Body() datos: any) {
+    return await this.createPetUseCase.execute(datos, tutorId);
   }
 
   @Put('pets/:id')
-  async actualizar(@Param('id') id: string, @Body() body: any) {
-    return await this.updatePetUC.execute(id, body);
+  async actualizarMascota(@Param('id') id: string, @Body() datos: any) {
+    return await this.updatePetUseCase.execute(id, datos);
   }
 
   @Delete('pets/:id')
-  async eliminar(@Param('id') id: string) {
-    return await this.deletePetUC.execute(id);
+  async eliminarMascota(@Param('id') id: string) {
+    return await this.deletePetUseCase.execute(id);
   }
 }
