@@ -4,6 +4,10 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './JwtStrategy';
 import { JwtAuthGuard } from './JwtAuthGuard';
 import { RolesGuard } from './RolesGuard';
+import { AuthController } from './AuthController';
+import { RegisterUseCase } from '../../../../../application/use-cases/auth/RegisterUseCase';
+import { LoginUseCase } from '../../../../../application/use-cases/auth/LoginUseCase';
+import { PrismaUserRepository } from '../../../out/persistence/repositories/PrismaUserRepository';
 
 @Module({
   imports: [
@@ -13,7 +17,15 @@ import { RolesGuard } from './RolesGuard';
       signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any },
     }),
   ],
-  providers: [JwtStrategy, JwtAuthGuard, RolesGuard],
+  controllers: [AuthController],
+  providers: [
+    JwtStrategy,
+    JwtAuthGuard,
+    RolesGuard,
+    RegisterUseCase,
+    LoginUseCase,
+    { provide: 'IUserRepository', useClass: PrismaUserRepository },
+  ],
   exports: [JwtModule, JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}
