@@ -1,3 +1,6 @@
+import { useAuthStore } from '../../../stores/authStore';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
 interface NavItem {
   label: string
   path: string
@@ -23,11 +26,18 @@ const doctorNav: NavItem[] = [
 
 interface SidebarProps {
   role: 'tutor' | 'doctor'
-  currentPath: string
 }
 
-export function Sidebar({ role, currentPath }: SidebarProps) {
-  const navItems = role === 'doctor' ? doctorNav : tutorNav
+export function Sidebar({ role }: SidebarProps) {
+  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const navItems = role === 'doctor' ? doctorNav : tutorNav;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <aside className="flex w-64 flex-col bg-gray-900 text-white">
@@ -37,11 +47,11 @@ export function Sidebar({ role, currentPath }: SidebarProps) {
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems.map((item) => {
-          const active = currentPath === item.path
+          const active = location.pathname === item.path;
           return (
-            <a
+            <Link
               key={item.path}
-              href={item.path}
+              to={item.path}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 active
                   ? 'bg-blue-600 text-white'
@@ -52,18 +62,21 @@ export function Sidebar({ role, currentPath }: SidebarProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
               </svg>
               {item.label}
-            </a>
-          )
+            </Link>
+          );
         })}
       </nav>
       <div className="border-t border-gray-700 px-4 py-3">
-        <a href="/login" className="flex items-center gap-3 text-sm text-gray-400 hover:text-white">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 text-sm text-gray-400 hover:text-white transition-colors"
+        >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           Cerrar Sesión
-        </a>
+        </button>
       </div>
     </aside>
   )
-}
+} 

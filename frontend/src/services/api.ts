@@ -40,8 +40,6 @@ api.interceptors.response.use(
   },
 );
 
-// ─── Auth ──────────────────────────────────────────────
-
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<LoginResponse>('/auth/login', { email, password }),
@@ -52,8 +50,6 @@ export const authApi = {
   profile: () => api.get<UserDto>('/auth/profile'),
 };
 
-// ─── Tutor: Pets ───────────────────────────────────────
-
 export const petsApi = {
   list: () => api.get<PetDto[]>('/tutor/pets'),
   getById: (id: string) => api.get<PetDetailDto>(`/tutor/pets/${id}`),
@@ -62,16 +58,12 @@ export const petsApi = {
   delete: (id: string) => api.delete(`/tutor/pets/${id}`),
 };
 
-// ─── Tutor: Appointments ────────────────────────────────
-
 export const appointmentsApi = {
   list: (status?: string) =>
     api.get<AppointmentDto[]>('/tutor/appointments', { params: { status } }),
   create: (data: object) => api.post<AppointmentDto>('/tutor/appointments', data),
   cancel: (id: string) => api.patch(`/tutor/appointments/${id}/cancel`),
 };
-
-// ─── Tutor: Shop ────────────────────────────────────────
 
 export const productsApi = {
   list: (category?: string) =>
@@ -88,19 +80,15 @@ export const cartApi = {
   checkout: () => api.post('/orders'),
 };
 
-// ─── Common ─────────────────────────────────────────────
-
 export const servicesApi = {
-  list: () => api.get<ServiceDto[]>('/services'),
+  list: () => api.get<ServiceDto[]>('/tutor/services'),
 };
 
 export const doctorsApi = {
-  list: () => api.get<DoctorDto[]>('/doctors'),
-  availability: (id: string, date: string) =>
-    api.get<string[]>(`/doctors/${id}/availability`, { params: { date } }),
+  list: () => api.get<DoctorDto[]>('/tutor/doctors'),
+  availability: (id: string) =>
+    api.get<any[]>(`/tutor/doctors/${id}/availability`),
 };
-
-// ─── Triage ─────────────────────────────────────────────
 
 export const triageApi = {
   submit: (data: { petId: string; symptoms: string; duration: string; painLevel: string }) =>
@@ -108,14 +96,10 @@ export const triageApi = {
   getResult: (id: string) => api.get(`/triage/${id}`),
 };
 
-// ─── Prescriptions ──────────────────────────────────────
-
 export const prescriptionsApi = {
   getTutorPrescription: (id: string) =>
     api.get<PrescriptionDetailDto>(`/tutor/prescriptions/${id}`),
 };
-
-// ─── Doctor ─────────────────────────────────────────────
 
 export const doctorApi = {
   dashboard: () => api.get<DoctorDashboardDto>('/doctor/dashboard'),
