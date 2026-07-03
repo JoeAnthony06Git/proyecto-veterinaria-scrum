@@ -10,10 +10,7 @@ export function TriagePage() {
         <div>
           <label className="block text-sm font-medium text-gray-700">Mascota</label>
           <select className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-            <option>Selecciona una mascota</option>
-            <option>Max - Golden Retriever</option>
-            <option>Luna - Siamés</option>
-            <option>Piolín - Canario</option>
+            <option>No hay mascotas registradas</option>
           </select>
         </div>
 
@@ -21,7 +18,7 @@ export function TriagePage() {
           <label className="block text-sm font-medium text-gray-700">¿Cuáles son los síntomas?</label>
           <textarea
             rows={4}
-            placeholder="Describe detalladamente los síntomas que presenta tu mascota (ej: vomitó 3 veces en las últimas 2 horas, no quiere comer, está decaído)"
+            placeholder="Describe los síntomas que presenta tu mascota"
             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
@@ -51,7 +48,7 @@ export function TriagePage() {
         </button>
 
         <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800">
-          <p className="font-medium">⚕️ Evaluación preliminar</p>
+          <p className="font-medium">Evaluación preliminar</p>
           <p className="mt-1 text-yellow-700">Al enviar, la IA analizará los síntomas y generará un reporte de clasificación de urgencia que será revisado por el médico.</p>
         </div>
       </div>

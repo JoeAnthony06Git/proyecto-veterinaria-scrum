@@ -95,7 +95,43 @@ export class TutorController {
 
   @Get('pets/:id')
   async obtenerMascota(@Param('id') id: string) {
-    return await this.getPetByIdUseCase.execute(id);
+    const pet = await this.prisma.pet.findUnique({
+      where: { id },
+      include: {
+        vaccines: { orderBy: { date: 'desc' } },
+        medicalRecords: {
+          orderBy: { date: 'desc' },
+          include: { doctor: { select: { name: true, lastName: true } } },
+        },
+      },
+    });
+
+    if (!pet) return null;
+
+    return {
+      id: pet.id,
+      nombre: pet.name,
+      especie: pet.species,
+      raza: pet.breed,
+      sexo: pet.sex,
+      pesoKg: pet.weightKg,
+      tutorId: pet.tutorId,
+      fechaNacimiento: pet.birthDate.toISOString(),
+      color: pet.color,
+      vaccines: pet.vaccines.map((v) => ({
+        id: v.id,
+        name: v.name,
+        date: v.date.toISOString(),
+        next: v.nextDose.toISOString(),
+        status: v.status,
+      })),
+      consultations: pet.medicalRecords.map((r) => ({
+        id: r.id,
+        date: r.date.toISOString(),
+        reason: r.reason || 'Consulta general',
+        doctor: `${r.doctor.name} ${r.doctor.lastName}`,
+      })),
+    };
   }
 
   @Post('pets')

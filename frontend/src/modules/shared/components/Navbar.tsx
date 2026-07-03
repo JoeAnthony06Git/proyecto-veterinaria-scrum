@@ -6,7 +6,7 @@ interface NavbarProps {
 
 export function Navbar({ role }: NavbarProps) {
   const [open, setOpen] = useState(false)
-  const userName = role === 'doctor' ? 'Dr. Carlos López' : 'María García'
+  const userName = role === 'doctor' ? '' : ''
 
   return (
     <nav className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">

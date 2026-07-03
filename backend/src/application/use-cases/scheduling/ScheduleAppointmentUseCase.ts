@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@nestjs/common';
+﻿import { Injectable, Inject } from '@nestjs/common';
 import { IRepositorioCita } from '../../../domain/ports/out/database/IAppointmentRepository';
 import { Cita } from '../../../domain/entities/Appointment';
 
@@ -14,7 +14,7 @@ export interface DatosAgendarCita {
 
 @Injectable()
 export class AgendarCitaUseCase {
-  constructor(private readonly repositorioCita: IRepositorioCita) {}
+  constructor(@Inject('IRepositorioCita') private readonly repositorioCita: IRepositorioCita) {}
 
   async ejecutar(datos: DatosAgendarCita): Promise<Cita> {
     const cita = Cita.crearNueva(

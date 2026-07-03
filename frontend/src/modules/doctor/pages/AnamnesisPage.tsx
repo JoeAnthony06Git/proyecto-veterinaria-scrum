@@ -13,9 +13,7 @@ export function AnamnesisPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700">Paciente</label>
             <select className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
-              <option>Max - Golden Retriever</option>
-              <option>Luna - Siamés</option>
-              <option>Toby - Bulldog</option>
+              <option>No hay pacientes registrados</option>
             </select>
           </div>
 
@@ -28,12 +26,12 @@ export function AnamnesisPage() {
             <p className="mt-4 text-sm font-medium text-gray-700">Presiona para grabar</p>
             <p className="text-xs text-gray-500">Whisper procesará el audio localmente</p>
             <button className="mt-4 rounded-full bg-red-500 px-8 py-3 text-sm font-semibold text-white hover:bg-red-600 transition-colors">
-              🎤 Comenzar Grabación
+              Comenzar Grabación
             </button>
           </div>
 
           <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700">
-            <p className="font-medium">ℹ️ Whisper (Local)</p>
+            <p className="font-medium">Whisper (Local)</p>
             <p className="mt-1 text-blue-600">La transcripción se procesa localmente mediante whisper.cpp. No se envía audio a servicios externos.</p>
           </div>
         </div>
@@ -53,15 +51,15 @@ export function AnamnesisPage() {
           <div className="rounded-lg border divide-y">
             <div className="p-3">
               <p className="text-xs font-medium uppercase text-gray-500">Síntomas</p>
-              <p className="mt-1 text-sm text-gray-800">Vómitos esporádicos desde hace 3 días, inapetencia parcial, deposiciones blandas</p>
+              <p className="mt-1 text-sm text-gray-800">-</p>
             </div>
             <div className="p-3">
               <p className="text-xs font-medium uppercase text-gray-500">Diagnóstico Presuntivo</p>
-              <p className="mt-1 text-sm text-gray-800">Gastroenteritis leve / posible intolerancia alimentaria</p>
+              <p className="mt-1 text-sm text-gray-800">-</p>
             </div>
             <div className="p-3">
               <p className="text-xs font-medium uppercase text-gray-500">Tratamiento Sugerido</p>
-              <p className="mt-1 text-sm text-gray-800">Dieta blanda, hidratación, monitoreo de signos vitales</p>
+              <p className="mt-1 text-sm text-gray-800">-</p>
             </div>
           </div>
 

@@ -53,7 +53,7 @@ export function PetFormModal({ onClose }: PetFormModalProps) {
               type="text"
               required
               className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
-              placeholder="Ej: Max"
+              placeholder="Nombre de la mascota"
               onChange={(e) => setDatos({ ...datos, nombre: e.target.value })}
             />
           </div>
@@ -89,7 +89,7 @@ export function PetFormModal({ onClose }: PetFormModalProps) {
               type="text"
               required
               className="w-full px-4 py-2 border rounded-xl outline-none"
-              placeholder="Ej: Golden Retriever"
+              placeholder="Raza"
               onChange={(e) => setDatos({ ...datos, raza: e.target.value })}
             />
           </div>

@@ -1,4 +1,8 @@
 export function AppointmentsPage() {
+  const appointments: {
+    pet: string; service: string; date: string; time: string; doctor: string; status: string
+  }[] = []
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -18,32 +22,35 @@ export function AppointmentsPage() {
             <button className="px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700">Historial</button>
           </div>
         </div>
-        <div className="divide-y divide-gray-100">
-          {[
-            { pet: 'Max', service: 'Consulta General', date: '15 Jun 2026', time: '10:00 AM', doctor: 'Dr. López', status: 'Confirmada' },
-            { pet: 'Luna', service: 'Vacunación', date: '18 Jun 2026', time: '3:30 PM', doctor: 'Dra. Martínez', status: 'Pendiente' },
-          ].map((apt) => (
-            <div key={apt.pet + apt.date} className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                  <span className="text-sm font-bold text-blue-600">{apt.pet[0]}</span>
+        {appointments.length === 0 ? (
+          <div className="p-6 text-center text-sm text-gray-400">
+            No tienes citas agendadas.
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {appointments.map((apt) => (
+              <div key={apt.pet + apt.date} className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                    <span className="text-sm font-bold text-blue-600">{apt.pet[0]}</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{apt.pet} · {apt.service}</p>
+                    <p className="text-sm text-gray-500">{apt.date} {apt.time} · {apt.doctor}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-800">{apt.pet} · {apt.service}</p>
-                  <p className="text-sm text-gray-500">{apt.date} {apt.time} · {apt.doctor}</p>
+                <div className="flex items-center gap-3">
+                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    apt.status === 'Confirmada' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {apt.status}
+                  </span>
+                  <button className="text-sm text-red-500 hover:text-red-700">Cancelar</button>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  apt.status === 'Confirmada' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {apt.status}
-                </span>
-                <button className="text-sm text-red-500 hover:text-red-700">Cancelar</button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

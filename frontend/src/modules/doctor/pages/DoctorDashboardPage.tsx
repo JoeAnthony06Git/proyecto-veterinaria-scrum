@@ -1,4 +1,12 @@
 export function DoctorDashboardPage() {
+  const todayAppointments: {
+    pet: string; owner: string; time: string; service: string; status: string
+  }[] = []
+
+  const triageAlerts: {
+    pet: string; owner: string; urgency: string; symptoms: string; time: string
+  }[] = []
+
   return (
     <div className="space-y-6">
       <div>
@@ -16,7 +24,7 @@ export function DoctorDashboardPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Citas Hoy</p>
-              <p className="text-2xl font-bold text-gray-800">6</p>
+              <p className="text-2xl font-bold text-gray-800">0</p>
             </div>
           </div>
         </div>
@@ -29,7 +37,7 @@ export function DoctorDashboardPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Pacientes</p>
-              <p className="text-2xl font-bold text-gray-800">12</p>
+              <p className="text-2xl font-bold text-gray-800">0</p>
             </div>
           </div>
         </div>
@@ -42,7 +50,7 @@ export function DoctorDashboardPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Alertas Triaje</p>
-              <p className="text-2xl font-bold text-yellow-600">2</p>
+              <p className="text-2xl font-bold text-yellow-600">0</p>
             </div>
           </div>
         </div>
@@ -55,7 +63,7 @@ export function DoctorDashboardPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Urgencias</p>
-              <p className="text-2xl font-bold text-red-600">1</p>
+              <p className="text-2xl font-bold text-red-600">0</p>
             </div>
           </div>
         </div>
@@ -64,56 +72,56 @@ export function DoctorDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-xl bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-800">Citas de Hoy</h2>
-          <div className="space-y-3">
-            {[
-              { pet: 'Max', owner: 'María García', time: '10:00 AM', service: 'Consulta', status: 'En sala' },
-              { pet: 'Luna', owner: 'María García', time: '10:30 AM', service: 'Vacunación', status: 'Pendiente' },
-              { pet: 'Toby', owner: 'Pedro Ruiz', time: '11:15 AM', service: 'Control', status: 'Pendiente' },
-              { pet: 'Nina', owner: 'Ana Torres', time: '12:00 PM', service: 'Diagnóstico', status: 'Pendiente' },
-            ].map((c) => (
-              <div key={c.pet + c.time} className="flex items-center justify-between rounded-lg border p-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-600">
-                    {c.pet[0]}
+          {todayAppointments.length === 0 ? (
+            <p className="text-sm text-gray-400">No hay citas para hoy.</p>
+          ) : (
+            <div className="space-y-3">
+              {todayAppointments.map((c) => (
+                <div key={c.pet + c.time} className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-600">
+                      {c.pet[0]}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">{c.pet} · {c.service}</p>
+                      <p className="text-xs text-gray-500">{c.time} · {c.owner}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800">{c.pet} · {c.service}</p>
-                    <p className="text-xs text-gray-500">{c.time} · {c.owner}</p>
-                  </div>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    c.status === 'En sala' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {c.status}
+                  </span>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  c.status === 'En sala' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {c.status}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="rounded-xl bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-800">Alertas de Triaje Recibidas</h2>
-          <div className="space-y-3">
-            {[
-              { pet: 'Rocky', owner: 'Jorge Silva', urgency: 'ALTA', symptoms: 'Vómitos persistentes, sangre en heces', time: 'hace 15 min' },
-              { pet: 'Bella', owner: 'Lucía Méndez', urgency: 'MEDIA', symptoms: 'Picazón intensa, pérdida de pelo', time: 'hace 1 hora' },
-            ].map((a) => (
-              <div key={a.pet} className={`rounded-lg border-l-4 p-3 ${
-                a.urgency === 'ALTA' ? 'border-l-red-500 bg-red-50' : 'border-l-yellow-500 bg-yellow-50'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-gray-800">{a.pet} · <span className={a.urgency === 'ALTA' ? 'text-red-600' : 'text-yellow-600'}>{a.urgency}</span></p>
-                  <span className="text-xs text-gray-400">{a.time}</span>
+          {triageAlerts.length === 0 ? (
+            <p className="text-sm text-gray-400">No hay alertas de triaje.</p>
+          ) : (
+            <div className="space-y-3">
+              {triageAlerts.map((a) => (
+                <div key={a.pet} className={`rounded-lg border-l-4 p-3 ${
+                  a.urgency === 'ALTA' ? 'border-l-red-500 bg-red-50' : 'border-l-yellow-500 bg-yellow-50'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-gray-800">{a.pet} · <span className={a.urgency === 'ALTA' ? 'text-red-600' : 'text-yellow-600'}>{a.urgency}</span></p>
+                    <span className="text-xs text-gray-400">{a.time}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-600">{a.symptoms}</p>
+                  <p className="mt-1 text-xs text-gray-400">Tutor: {a.owner}</p>
+                  <div className="mt-2 flex gap-2">
+                    <button className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700">Atender</button>
+                    <button className="rounded border px-3 py-1 text-xs text-gray-600 hover:bg-gray-50">Ver detalle</button>
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-600">{a.symptoms}</p>
-                <p className="mt-1 text-xs text-gray-400">Tutor: {a.owner}</p>
-                <div className="mt-2 flex gap-2">
-                  <button className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700">Atender</button>
-                  <button className="rounded border px-3 py-1 text-xs text-gray-600 hover:bg-gray-50">Ver detalle</button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
