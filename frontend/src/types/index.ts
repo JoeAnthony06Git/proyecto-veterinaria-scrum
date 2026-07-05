@@ -185,6 +185,7 @@ export interface DoctorAppointmentDto {
   time: string;
   service: string;
   status: string;
+  date?: string;
 }
 
 export interface TriageAlertDto {

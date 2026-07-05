@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { doctorApi } from '../../../services/api';
+import type { DoctorAppointmentDto } from '../../../types';
 
 export function DoctorAppointmentsPage() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<DoctorAppointmentDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { doctorApi } from '../../../services/api';
 import { Link } from 'react-router-dom';
+import type { PatientDto } from '../../../types';
 
 export function PatientsPage() {
-  const [patients, setPatients] = useState<any[]>([]);
+  const [patients, setPatients] = useState<PatientDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     doctorApi.patients()
@@ -12,13 +14,24 @@ export function PatientsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const filtered = patients.filter(p =>
+    p.pet.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Pacientes</h1>
+        <input
+          type="text"
+          placeholder="Buscar por nombre..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none sm:w-72"
+        />
       </div>
 
-      <div className="rounded-xl bg-white shadow-sm border overflow-hidden">
+      <div className="overflow-x-auto rounded-xl bg-white shadow-sm border">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -32,10 +45,12 @@ export function PatientsPage() {
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr><td colSpan={5} className="p-10 text-center text-sm text-gray-400">Cargando pacientes...</td></tr>
-            ) : patients.length === 0 ? (
-              <tr><td colSpan={5} className="p-10 text-center text-sm text-gray-400">No hay pacientes registrados.</td></tr>
+            ) : filtered.length === 0 ? (
+              <tr><td colSpan={5} className="p-10 text-center text-sm text-gray-400">
+                {search ? 'No se encontraron pacientes con ese nombre.' : 'No hay pacientes registrados.'}
+              </td></tr>
             ) : (
-              patients.map((p) => (
+              filtered.map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <p className="font-bold text-gray-900">{p.pet}</p>
