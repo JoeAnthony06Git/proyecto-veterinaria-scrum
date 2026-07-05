@@ -37,6 +37,13 @@ export function PetDetailPage() {
               <div className="flex justify-between"><span className="text-gray-500">Peso:</span><span className="font-medium text-gray-800">{currentPet.pesoKg} kg</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Color:</span><span className="font-medium text-gray-800">{currentPet.color}</span></div>
             </div>
+
+            <Link
+              to={`/tutor/appointments/new?petId=${currentPet.id}`}
+              className="mt-4 block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              Agendar Cita
+            </Link>
           </div>
         </div>
 

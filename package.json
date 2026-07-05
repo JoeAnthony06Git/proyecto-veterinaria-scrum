@@ -9,5 +9,11 @@
     "build": "pnpm run build:frontend",
     "lint:frontend": "pnpm --filter frontend lint",
     "lint": "pnpm run lint:frontend"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
   }
 }
