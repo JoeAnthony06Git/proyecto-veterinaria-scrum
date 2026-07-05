@@ -45,9 +45,13 @@ export const usePetStore = create<PetState>((set) => ({
   createPet: async (data) => {
     set({ loading: true, error: null });
     try {
-      await petsApi.create(data);
-      set({ loading: false });
-    } catch {
+      const response = await petsApi.create(data);
+      // Agregamos la nueva mascota al array existente
+      set((state) => ({ 
+        pets: [...state.pets, response.data], 
+        loading: false 
+      }));
+    } catch (err) {
       set({ error: 'Error al crear mascota', loading: false });
     }
   },

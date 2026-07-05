@@ -5,12 +5,10 @@ import { RolesGuard, Roles } from '../auth/RolesGuard';
 import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/CurrentUser';
 
-// Casos de uso de Citas (Joseph)
 import { AgendarCitaUseCase } from '../../../../../application/use-cases/scheduling/ScheduleAppointmentUseCase';
 import { ObtenerCitasUseCase } from '../../../../../application/use-cases/scheduling/GetAppointmentsUseCase';
 import { PrismaService } from '../../../out/persistence/PrismaService';
 
-// Casos de uso de Mascotas (Brianna)
 import { CreatePetUseCase } from '../../../../../application/use-cases/pets/CreatePetUseCase';
 import { GetPetsUseCase } from '../../../../../application/use-cases/pets/GetPetsUseCase';
 import { GetPetByIdUseCase } from '../../../../../application/use-cases/pets/GetPetByIdUseCase';
@@ -22,12 +20,10 @@ import { DeletePetUseCase } from '../../../../../application/use-cases/pets/Dele
 @Roles(Role.TUTOR)
 export class TutorController {
   constructor(
-    // Inyecciones de Citas (Joseph)
     private readonly agendarCitaUseCase: AgendarCitaUseCase,
     private readonly obtenerCitasUseCase: ObtenerCitasUseCase,
     private readonly prisma: PrismaService,
-
-    // Inyecciones de Mascotas (Brianna) 
+ 
     private readonly createPetUseCase: CreatePetUseCase,
     private readonly getPetsUseCase: GetPetsUseCase,
     private readonly getPetByIdUseCase: GetPetByIdUseCase,
@@ -35,13 +31,19 @@ export class TutorController {
     private readonly deletePetUseCase: DeletePetUseCase
   ) {}
 
-  // =========================================================================
-  // ENDPOINTS DE CITAS & SERVICIOS (Joseph)
-  // =========================================================================
+  // ENDPOINTS DE CITAS & SERVICIOS (Joseph
 
   @Post('appointments')
-  async agendarCita(@Body() datos: any) {
-    return await this.agendarCitaUseCase.ejecutar(datos);
+  async agendarCita(@CurrentUser('id') tutorId: string, @Body() datos: any) {
+    return await this.agendarCitaUseCase.ejecutar({
+      id: datos.id || crypto.randomUUID(),
+      mascotaId: datos.petId,
+      tutorId: tutorId,
+      doctorId: datos.doctorId,
+      servicioId: datos.serviceId,
+      fecha: new Date(datos.date),
+      hora: datos.time
+    });
   }
 
   @Get('appointments')
@@ -84,9 +86,7 @@ export class TutorController {
     });
   }
 
-  // =========================================================================
   // ENDPOINTS DE MASCOTAS (Brianna) 
-  // =========================================================================
 
   @Get('pets')
   async listarMascotas(@CurrentUser('id') tutorId: string) {
@@ -148,4 +148,6 @@ export class TutorController {
   async eliminarMascota(@Param('id') id: string) {
     return await this.deletePetUseCase.execute(id);
   }
+
+  
 }

@@ -1,57 +1,57 @@
+import { useEffect, useState } from 'react';
+import { appointmentsApi } from '../../../services/api';
+
 export function AppointmentsPage() {
-  const appointments: {
-    pet: string; service: string; date: string; time: string; doctor: string; status: string
-  }[] = []
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    appointmentsApi.list()
+      .then(res => setAppointments(res.data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleCancel = async (id: string) => {
+    if (window.confirm('¿Estás seguro de cancelar esta cita?')) {
+      await appointmentsApi.cancel(id);
+      const res = await appointmentsApi.list();
+      setAppointments(res.data);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Mis Citas</h1>
-          <p className="mt-1 text-sm text-gray-500">Historial de citas agendadas</p>
-        </div>
-        <a href="/tutor/appointments/new" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
-          + Nueva Cita
-        </a>
+        <h1 className="text-2xl font-bold text-gray-800">Mis Citas</h1>
+        <a href="/tutor/appointments/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">+ Nueva Cita</a>
       </div>
 
-      <div className="rounded-xl bg-white shadow-sm">
-        <div className="border-b border-gray-200">
-          <div className="flex">
-            <button className="border-b-2 border-blue-600 px-6 py-3 text-sm font-medium text-blue-600">Próximas</button>
-            <button className="px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700">Historial</button>
-          </div>
-        </div>
-        {appointments.length === 0 ? (
-          <div className="p-6 text-center text-sm text-gray-400">
-            No tienes citas agendadas.
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
+      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        {loading ? (
+          <p className="p-10 text-center">Cargando...</p>
+        ) : appointments.length > 0 ? (
+          <div className="divide-y">
             {appointments.map((apt) => (
-              <div key={apt.pet + apt.date} className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                    <span className="text-sm font-bold text-blue-600">{apt.pet[0]}</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">{apt.pet} · {apt.service}</p>
-                    <p className="text-sm text-gray-500">{apt.date} {apt.time} · {apt.doctor}</p>
-                  </div>
+              <div key={apt.id} className="p-4 flex justify-between items-center">
+                <div>
+                  <p className="font-bold">{apt.pet} · {apt.service}</p>
+                  <p className="text-sm text-gray-500">{apt.date} {apt.time} · {apt.doctor}</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    apt.status === 'Confirmada' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                  }`}>
+                <div className="flex items-center gap-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${apt.status === 'PROGRAMADA' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                     {apt.status}
                   </span>
-                  <button className="text-sm text-red-500 hover:text-red-700">Cancelar</button>
+                  {apt.status === 'PROGRAMADA' && (
+                    <button onClick={() => handleCancel(apt.id)} className="text-red-500 text-sm hover:underline">Cancelar</button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
+        ) : (
+          <p className="p-10 text-center text-gray-400">No tienes citas registradas.</p>
         )}
       </div>
     </div>
-  )
+  );
 }

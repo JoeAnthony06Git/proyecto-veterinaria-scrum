@@ -1,7 +1,7 @@
-
-import { Navigate } from 'react-router-dom'
-import { useAuthStore } from '../../../stores/authStore'
-import type { ReactNode } from 'react'
+import { Navigate } from 'react-router-dom';
+import { useAuthStore } from '../../../stores/authStore';
+import { Loading } from '../components/Loading';
+import type { ReactNode } from 'react';
 
 interface RoleGuardProps {
   role: 'TUTOR' | 'DOCTOR'
@@ -9,14 +9,16 @@ interface RoleGuardProps {
 }
 
 export function RoleGuard({ role, children }: RoleGuardProps) {
-  const { token, user } = useAuthStore()
+  const { token, user, loading } = useAuthStore();
 
-  if (!token) return <Navigate to="/login" replace />
+  if (loading) return <Loading />;
 
-  if (user?.role !== role) {
-    const dashboard = user?.role === 'DOCTOR' ? '/doctor/dashboard' : '/tutor/dashboard'
-    return <Navigate to={dashboard} replace />
+  if (!token) return <Navigate to="/login" replace />;
+
+  if (user && user.role !== role) {
+    const dashboard = user.role === 'DOCTOR' ? '/doctor/dashboard' : '/tutor/dashboard';
+    return <Navigate to={dashboard} replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

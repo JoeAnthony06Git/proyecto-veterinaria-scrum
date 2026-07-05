@@ -44,22 +44,26 @@ export class PrismaRepositorioCita implements IRepositorioCita {
     );
   }
 
-  async listarPorTutor(tutorId: string): Promise<Cita[]> {
+    async listarPorTutor(tutorId: string): Promise<any[]> {
     const registros = await this.prisma.appointment.findMany({
       where: { tutorId },
+      include: {
+        pet: { select: { name: true } },
+        doctor: { select: { name: true, lastName: true } },
+        service: { select: { label: true } },
+      },
+      orderBy: { date: 'asc' }
     });
 
-    return registros.map((r: any) => new Cita(
-        r.id,
-        r.petId,
-        r.tutorId,
-        r.doctorId,
-        r.serviceId,
-        r.date,
-        r.time,
-        r.status as unknown as EstadoCita,
-        r.createdAt,
-        ));
+    return registros.map((r: any) => ({
+      id: r.id,
+      pet: r.pet.name,
+      doctor: `Dr. ${r.doctor.name} ${r.doctor.lastName}`,
+      service: r.service.label,
+      date: r.date.toISOString().split('T')[0],
+      time: r.time,
+      status: r.status
+    }));
   }
 
   async listarPorDoctor(doctorId: string): Promise<Cita[]> {

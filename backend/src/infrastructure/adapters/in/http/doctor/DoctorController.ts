@@ -1,13 +1,4 @@
-﻿import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Patch,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+﻿import { Controller, Get, Post, Body, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/JwtAuthGuard';
 import { RolesGuard, Roles } from '../auth/RolesGuard';
 import { Role } from '@prisma/client';
@@ -22,48 +13,36 @@ export class DoctorController {
 
   @Get('dashboard')
   async getDashboard(@CurrentUser('id') doctorId: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const [todayAppointments, patientCount, triageAlerts] = await Promise.all([
+    const [appointments, patientCount, triageAlerts] = await Promise.all([
       this.prisma.appointment.findMany({
         where: {
           doctorId,
-          date: { gte: today, lt: tomorrow },
+          status: { in: ['PROGRAMADA', 'EN_CURSO'] }
         },
-        include: {
-          pet: true,
-          tutor: true,
-          service: true,
-        },
-        orderBy: { time: 'asc' },
+        include: { pet: true, tutor: true, service: true },
+        orderBy: { date: 'asc' },
       }),
       this.prisma.pet.count(),
       this.prisma.triageReport.findMany({
         where: { status: 'PENDIENTE' },
-        include: {
-          pet: true,
-          tutor: true,
-        },
+        include: { pet: true, tutor: true },
         orderBy: { createdAt: 'desc' },
-        take: 10,
       }),
     ]);
 
     return {
-      todayAppointments: todayAppointments.length,
+      todayAppointments: appointments.length,
       patientCount,
       triageAlerts: triageAlerts.length,
       emergencies: triageAlerts.filter((t) => t.urgency === 'CRITICA').length,
-      appointments: todayAppointments.map((a) => ({
+      appointments: appointments.map((a) => ({
         id: a.id,
         pet: a.pet.name,
         owner: `${a.tutor.name} ${a.tutor.lastName}`,
         time: a.time,
         service: a.service.label,
         status: a.status,
+        date: a.date.toISOString().split('T')[0]
       })),
       alerts: triageAlerts.map((t) => ({
         id: t.id,
@@ -80,28 +59,20 @@ export class DoctorController {
   async getPatients() {
     const pets = await this.prisma.pet.findMany({
       include: {
-        tutor: true,
-        medicalRecords: {
-          orderBy: { date: 'desc' },
-          take: 1,
-        },
+        tutor: { select: { name: true, lastName: true } },
+        medicalRecords: { orderBy: { date: 'desc' }, take: 1 }
       },
-      orderBy: { name: 'asc' },
+      orderBy: { name: 'asc' }
     });
 
-    return pets.map((p) => {
-      const hoy = new Date();
-      const edad = hoy.getFullYear() - p.birthDate.getFullYear();
-      return {
-        id: p.id,
-        pet: p.name,
-        species: p.species,
-        breed: p.breed,
-        age: `${edad} años`,
-        owner: `${p.tutor.name} ${p.tutor.lastName}`,
-        lastVisit: p.medicalRecords[0]?.date?.toISOString() || '',
-      };
-    });
+    return pets.map(p => ({
+      id: p.id,
+      pet: p.name,
+      species: p.species,
+      breed: p.breed,
+      owner: `${p.tutor.name} ${p.tutor.lastName}`,
+      lastVisit: p.medicalRecords[0]?.date.toISOString().split('T')[0] || 'Sin consultas'
+    }));
   }
 
   @Get('patients/:id')
@@ -145,27 +116,10 @@ export class DoctorController {
   }
 
   @Get('appointments')
-  async getAppointments(
-    @CurrentUser('id') doctorId: string,
-    @Query('range') range?: string,
-  ) {
-    const where: any = { doctorId };
-
-    if (range === 'today') {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      where.date = { gte: today, lt: tomorrow };
-    }
-
+  async getAppointments(@CurrentUser('id') doctorId: string) {
     const appointments = await this.prisma.appointment.findMany({
-      where,
-      include: {
-        pet: true,
-        tutor: true,
-        service: true,
-      },
+      where: { doctorId },
+      include: { pet: true, tutor: true, service: true },
       orderBy: { date: 'desc' },
     });
 
@@ -179,11 +133,13 @@ export class DoctorController {
     }));
   }
 
+  @Get('appointments/:id')
+  async getAppointmentById(@Param('id') id: string) {
+    return await this.prisma.appointment.findUnique({ where: { id } });
+  }
+
   @Patch('appointments/:id/status')
-  async updateAppointmentStatus(
-    @Param('id') id: string,
-    @Body('status') status: string,
-  ) {
+  async updateAppointmentStatus(@Param('id') id: string, @Body('status') status: string) {
     return await this.prisma.appointment.update({
       where: { id },
       data: { status: status as any },
@@ -194,10 +150,7 @@ export class DoctorController {
   async getTriageAlerts() {
     const alerts = await this.prisma.triageReport.findMany({
       where: { status: 'PENDIENTE' },
-      include: {
-        pet: true,
-        tutor: true,
-      },
+      include: { pet: true, tutor: true },
       orderBy: [
         { urgency: 'desc' },
         { createdAt: 'desc' },
