@@ -13,14 +13,16 @@ export class DoctorController {
 
   @Get('dashboard')
   async getDashboard(@CurrentUser('id') doctorId: string) {
-    const [appointments, patientCount, triageAlerts] = await Promise.all([
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [todayAppointments, patientCount, triageAlerts] = await Promise.all([
       this.prisma.appointment.findMany({
-        where: {
-          doctorId,
-          status: { in: ['PROGRAMADA', 'EN_CURSO'] }
-        },
+        where: { doctorId, date: { gte: today, lt: tomorrow } },
         include: { pet: true, tutor: true, service: true },
-        orderBy: { date: 'asc' },
+        orderBy: { time: 'asc' },
       }),
       this.prisma.pet.count(),
       this.prisma.triageReport.findMany({
@@ -31,18 +33,17 @@ export class DoctorController {
     ]);
 
     return {
-      todayAppointments: appointments.length,
+      todayAppointments: todayAppointments.length,
       patientCount,
       triageAlerts: triageAlerts.length,
       emergencies: triageAlerts.filter((t) => t.urgency === 'CRITICA').length,
-      appointments: appointments.map((a) => ({
+      appointments: todayAppointments.map((a) => ({
         id: a.id,
         pet: a.pet.name,
         owner: `${a.tutor.name} ${a.tutor.lastName}`,
         time: a.time,
         service: a.service.label,
         status: a.status,
-        date: a.date.toISOString().split('T')[0]
       })),
       alerts: triageAlerts.map((t) => ({
         id: t.id,
@@ -116,11 +117,21 @@ export class DoctorController {
   }
 
   @Get('appointments')
-  async getAppointments(@CurrentUser('id') doctorId: string) {
+  async getAppointments(@CurrentUser('id') doctorId: string, @Query('range') range?: string) {
+    const where: any = { doctorId };
+
+    if (range === 'today') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      where.date = { gte: today, lt: tomorrow };
+    }
+
     const appointments = await this.prisma.appointment.findMany({
-      where: { doctorId },
+      where,
       include: { pet: true, tutor: true, service: true },
-      orderBy: { date: 'desc' },
+      orderBy: [{ date: 'asc' }, { time: 'asc' }],
     });
 
     return appointments.map((a) => ({
@@ -128,6 +139,7 @@ export class DoctorController {
       pet: a.pet.name,
       owner: `${a.tutor.name} ${a.tutor.lastName}`,
       time: a.time,
+      date: a.date.toISOString().split('T')[0],
       service: a.service.label,
       status: a.status,
     }));
