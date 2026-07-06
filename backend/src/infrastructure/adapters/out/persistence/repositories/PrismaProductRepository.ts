@@ -4,23 +4,19 @@ import { IProductRepository } from '../../../../../domain/ports/out/database/IPr
 import { Producto } from '../../../../../domain/entities/Product';
 
 @Injectable()
-export class PrismaProductRepository implements IProductRepository {
+export class PrismaProductRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<Producto[]> {
-    const raws = await this.prisma.product.findMany();
-    return raws.map(r => this.toDomain(r));
+  async findAll() {
+    return await this.prisma.product.findMany();
   }
 
-  async findById(id: string): Promise<Producto | null> {
-    const raw = await this.prisma.product.findUnique({ where: { id } });
-    if (!raw) return null;
-    return this.toDomain(raw);
+  async findById(id: string) {
+    return await this.prisma.product.findUnique({ where: { id } });
   }
 
-  async findByCategory(category: string): Promise<Producto[]> {
-    const raws = await this.prisma.product.findMany({ where: { category } });
-    return raws.map(r => this.toDomain(r));
+  async findByCategory(category: string) {
+    return await this.prisma.product.findMany({ where: { category } });
   }
 
   async crear(producto: Producto): Promise<Producto> {

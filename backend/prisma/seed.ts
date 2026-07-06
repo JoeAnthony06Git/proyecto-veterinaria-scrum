@@ -5,7 +5,9 @@ const prisma = new PrismaClient();
 
 async function main() {
   await prisma.doctorInfo.deleteMany();
+  await prisma.appointment.deleteMany();
   await prisma.service.deleteMany();
+  await prisma.product.deleteMany();
   await prisma.user.deleteMany({ where: { email: 'doctor@veterinaria.com' } });
 
   const servicios = [
@@ -38,6 +40,18 @@ async function main() {
     }
   });
 
+  const productos = [
+    { name: 'Royal Canin Perro Adulto', price: 85.50, category: 'Alimentos', stock: 20 },
+    { name: 'Whiskas Gato Adulto', price: 42.00, category: 'Alimentos', stock: 15 },
+    { name: 'Collar Antipulgas', price: 25.00, category: 'Accesorios', stock: 50 },
+    { name: 'Shampoo Medicado', price: 35.00, category: 'Higiene', stock: 10 },
+    { name: 'Cama acolchada Grande', price: 120.00, category: 'Accesorios', stock: 5 },
+  ];
+
+  for (const p of productos) {
+    await prisma.product.create({ data: p });
+  }
+
   console.log('Seed completado correctamente.');
 }
 
@@ -49,3 +63,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
