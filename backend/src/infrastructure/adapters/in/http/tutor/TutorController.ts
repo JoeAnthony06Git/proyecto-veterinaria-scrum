@@ -124,13 +124,43 @@ export class TutorController {
     return await this.createPetUseCase.execute(datos, tutorId);
   }
 
+  @Get('pets/:id/vaccines')
+  async obtenerVacunas(@Param('id') id: string) {
+    const pet = await this.prisma.pet.findUnique({
+      where: { id },
+      select: { tutorId: true },
+    });
+    if (!pet) return [];
+    return await this.prisma.vaccineRecord.findMany({
+      where: { petId: id },
+      orderBy: { date: 'desc' },
+    });
+  }
+
+  @Get('pets/:id/consultations')
+  async obtenerConsultas(@Param('id') id: string) {
+    const pet = await this.prisma.pet.findUnique({
+      where: { id },
+      select: { tutorId: true },
+    });
+    if (!pet) return [];
+    return await this.prisma.medicalRecord.findMany({
+      where: { petId: id },
+      orderBy: { date: 'desc' },
+      include: {
+        doctor: { select: { name: true, lastName: true } },
+        prescriptions: { select: { id: true, status: true } },
+      },
+    });
+  }
+
   @Put('pets/:id')
-  async actualizarMascota(@Param('id') id: string, @Body() datos: any) {
-    return await this.updatePetUseCase.execute(id, datos);
+  async actualizarMascota(@CurrentUser('id') tutorId: string, @Param('id') id: string, @Body() datos: any) {
+    return await this.updatePetUseCase.execute(id, datos, tutorId);
   }
 
   @Delete('pets/:id')
-  async eliminarMascota(@Param('id') id: string) {
-    return await this.deletePetUseCase.execute(id);
+  async eliminarMascota(@CurrentUser('id') tutorId: string, @Param('id') id: string) {
+    return await this.deletePetUseCase.execute(id, tutorId);
   }
 }

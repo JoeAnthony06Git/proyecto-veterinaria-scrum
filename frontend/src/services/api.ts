@@ -3,6 +3,8 @@ import type {
   LoginResponse,
   PetDto,
   PetDetailDto,
+  VaccineRecordDto,
+  ConsultationSummaryDto,
   AppointmentDto,
   ServiceDto,
   DoctorDto,
@@ -53,6 +55,8 @@ export const authApi = {
 export const petsApi = {
   list: () => api.get<PetDto[]>('/tutor/pets'),
   getById: (id: string) => api.get<PetDetailDto>(`/tutor/pets/${id}`),
+  getVaccines: (id: string) => api.get<VaccineRecordDto[]>(`/tutor/pets/${id}/vaccines`),
+  getConsultations: (id: string) => api.get<ConsultationSummaryDto[]>(`/tutor/pets/${id}/consultations`),
   create: (data: FormData | object) => api.post<PetDto>('/tutor/pets', data),
   update: (id: string, data: object) => api.put<PetDto>(`/tutor/pets/${id}`, data),
   delete: (id: string) => api.delete(`/tutor/pets/${id}`),
