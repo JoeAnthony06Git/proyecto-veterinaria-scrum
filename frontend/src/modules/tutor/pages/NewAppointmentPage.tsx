@@ -48,18 +48,21 @@ export function NewAppointmentPage() {
 
   const handleFinish = async () => {
     try {
-      await appointmentsApi.create({
-        id: crypto.randomUUID(),
+      const payload = {
         petId: selection.petId,
         doctorId: selection.doctorId,
         serviceId: selection.serviceId,
-        date: new Date(selection.date),
-        time: selection.time,
-        status: 'PROGRAMADA'
-      });
+        date: selection.date,
+        time: selection.time
+      };
+      
+      await appointmentsApi.create(payload);
       alert('¡Cita agendada con éxito!');
       navigate('/tutor/appointments');
-    } catch (err) { alert('Error al agendar cita'); }
+    } catch (err) {
+      console.error(err);
+      alert('Error al agendar cita. Revisa la consola para más detalles.');
+    }
   };
 
   if (loadingData) return <div className="p-20 text-center">Cargando datos de agenda...</div>;
@@ -68,7 +71,6 @@ export function NewAppointmentPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Nueva Cita</h1>
 
-      {/* Stepper */}
       <div className="flex items-center justify-between">
         {stepLabels.map((label, i) => (
           <div key={label} className="flex items-center">
@@ -100,18 +102,14 @@ export function NewAppointmentPage() {
         {step === 2 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-800">2. Selecciona un Servicio</h2>
-            {services.length === 0 ? (
-               <div className="p-4 bg-yellow-50 text-yellow-700 rounded-lg">No hay servicios en la DB. Necesitas ejecutar un Seed.</div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {services.map((s) => (
-                  <button key={s.id} onClick={() => setSelection({ ...selection, serviceId: s.id })}
-                    className={`p-4 border rounded-xl text-left ${selection.serviceId === s.id ? 'border-blue-500 bg-blue-50' : ''}`}>
-                    <p className="font-bold">{s.label}</p>
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="grid gap-3 sm:grid-cols-2">
+              {services.map((s) => (
+                <button key={s.id} onClick={() => setSelection({ ...selection, serviceId: s.id })}
+                  className={`p-4 border rounded-xl text-left ${selection.serviceId === s.id ? 'border-blue-500 bg-blue-50' : ''}`}>
+                  <p className="font-bold">{s.label}</p>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -134,8 +132,8 @@ export function NewAppointmentPage() {
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-800">4. Fecha y Hora</h2>
             <input type="date" className="w-full border p-3 rounded-xl" onChange={(e) => setSelection({ ...selection, date: e.target.value })} />
-            <div className="grid grid-cols-4 gap-2">
-              {['09:00', '10:00', '11:00', '15:00'].map(t => (
+            <div className="grid grid-cols-4 gap-2 mt-4">
+              {['08:00', '09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00'].map(t => (
                 <button key={t} onClick={() => setSelection({ ...selection, time: t })} className={`p-2 border rounded-lg ${selection.time === t ? 'bg-blue-600 text-white' : ''}`}>{t}</button>
               ))}
             </div>
@@ -148,7 +146,9 @@ export function NewAppointmentPage() {
             <div className="p-4 bg-gray-50 rounded-xl border border-dashed text-sm">
               <p><strong>Mascota:</strong> {pets.find(p => p.id === selection.petId)?.nombre}</p>
               <p><strong>Servicio:</strong> {services.find(s => s.id === selection.serviceId)?.label}</p>
-              <p><strong>Fecha:</strong> {selection.date} - {selection.time}</p>
+              <p><strong>Doctor:</strong> {doctors.find(d => d.id === selection.doctorId)?.name}</p>
+              <p><strong>Fecha:</strong> {selection.date}</p>
+              <p><strong>Hora:</strong> {selection.time}</p>
             </div>
           </div>
         )}
@@ -159,7 +159,7 @@ export function NewAppointmentPage() {
         {step < 5 ? (
           <button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-30">Siguiente</button>
         ) : (
-          <button onClick={handleFinish} className="px-6 py-2 bg-green-600 text-white rounded-lg">Finalizar</button>
+          <button onClick={handleFinish} className="px-6 py-2 bg-green-600 text-white rounded-lg font-bold">FINALIZAR</button>
         )}
       </div>
     </div>

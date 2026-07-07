@@ -1,14 +1,11 @@
-﻿// http\tutor\TutorController.ts
-import { Controller, Get, Post, Body, Param, Patch, Put, Delete, UseGuards } from '@nestjs/common';
+﻿import { Controller, Get, Post, Body, Param, Patch, Put, Delete, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/JwtAuthGuard';
 import { RolesGuard, Roles } from '../auth/RolesGuard';
 import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/CurrentUser';
-
 import { AgendarCitaUseCase } from '../../../../../application/use-cases/scheduling/ScheduleAppointmentUseCase';
 import { ObtenerCitasUseCase } from '../../../../../application/use-cases/scheduling/GetAppointmentsUseCase';
 import { PrismaService } from '../../../out/persistence/PrismaService';
-
 import { CreatePetUseCase } from '../../../../../application/use-cases/pets/CreatePetUseCase';
 import { GetPetsUseCase } from '../../../../../application/use-cases/pets/GetPetsUseCase';
 import { GetPetByIdUseCase } from '../../../../../application/use-cases/pets/GetPetByIdUseCase';
@@ -23,7 +20,6 @@ export class TutorController {
     private readonly agendarCitaUseCase: AgendarCitaUseCase,
     private readonly obtenerCitasUseCase: ObtenerCitasUseCase,
     private readonly prisma: PrismaService,
- 
     private readonly createPetUseCase: CreatePetUseCase,
     private readonly getPetsUseCase: GetPetsUseCase,
     private readonly getPetByIdUseCase: GetPetByIdUseCase,
@@ -31,17 +27,16 @@ export class TutorController {
     private readonly deletePetUseCase: DeletePetUseCase
   ) {}
 
-  // ENDPOINTS DE CITAS & SERVICIOS (Joseph
-
   @Post('appointments')
   async agendarCita(@CurrentUser('id') tutorId: string, @Body() datos: any) {
+    const fecha = new Date(datos.date + 'T12:00:00Z');
     return await this.agendarCitaUseCase.ejecutar({
       id: datos.id || crypto.randomUUID(),
       mascotaId: datos.petId,
       tutorId: tutorId,
       doctorId: datos.doctorId,
       servicioId: datos.serviceId,
-      fecha: new Date(datos.date),
+      fecha: fecha,
       hora: datos.time
     });
   }
@@ -75,18 +70,10 @@ export class TutorController {
   @Get('doctors/:id/availability')
   async obtenerDisponibilidadDoctor(@Param('id') doctorId: string) {
     return await this.prisma.appointment.findMany({
-      where: {
-        doctorId,
-        status: 'PROGRAMADA',
-      },
-      select: {
-        date: true,
-        time: true,
-      },
+      where: { doctorId, status: 'PROGRAMADA' },
+      select: { date: true, time: true },
     });
   }
-
-  // ENDPOINTS DE MASCOTAS (Brianna) 
 
   @Get('pets')
   async listarMascotas(@CurrentUser('id') tutorId: string) {
@@ -105,9 +92,7 @@ export class TutorController {
         },
       },
     });
-
     if (!pet) return null;
-
     return {
       id: pet.id,
       nombre: pet.name,
@@ -148,6 +133,4 @@ export class TutorController {
   async eliminarMascota(@Param('id') id: string) {
     return await this.deletePetUseCase.execute(id);
   }
-
-  
 }

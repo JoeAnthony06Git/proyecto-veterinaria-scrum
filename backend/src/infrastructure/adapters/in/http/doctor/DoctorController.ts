@@ -13,14 +13,18 @@ export class DoctorController {
 
   @Get('dashboard')
   async getDashboard(@CurrentUser('id') doctorId: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const inicio = new Date();
+    inicio.setHours(0, 0, 0, 0);
+    const fin = new Date();
+    fin.setHours(23, 59, 59, 999);
 
-    const [todayAppointments, patientCount, triageAlerts] = await Promise.all([
+    const [appointments, patientCount, triageAlerts] = await Promise.all([
       this.prisma.appointment.findMany({
-        where: { doctorId, date: { gte: today, lt: tomorrow } },
+        where: { 
+          doctorId, 
+          date: { gte: inicio, lte: fin },
+          status: { in: ['PROGRAMADA', 'EN_CURSO'] } 
+        },
         include: { pet: true, tutor: true, service: true },
         orderBy: { time: 'asc' },
       }),
@@ -33,15 +37,16 @@ export class DoctorController {
     ]);
 
     return {
-      todayAppointments: todayAppointments.length,
+      todayAppointments: appointments.length,
       patientCount,
       triageAlerts: triageAlerts.length,
       emergencies: triageAlerts.filter((t) => t.urgency === 'CRITICA').length,
-      appointments: todayAppointments.map((a) => ({
+      appointments: appointments.map((a) => ({
         id: a.id,
         pet: a.pet.name,
         owner: `${a.tutor.name} ${a.tutor.lastName}`,
         time: a.time,
+        date: a.date.toISOString().split('T')[0],
         service: a.service.label,
         status: a.status,
       })),
@@ -121,11 +126,11 @@ export class DoctorController {
     const where: any = { doctorId };
 
     if (range === 'today') {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      where.date = { gte: today, lt: tomorrow };
+      const inicio = new Date();
+      inicio.setHours(0, 0, 0, 0);
+      const fin = new Date();
+      fin.setHours(23, 59, 59, 999);
+      where.date = { gte: inicio, lte: fin };
     }
 
     const appointments = await this.prisma.appointment.findMany({
@@ -152,10 +157,26 @@ export class DoctorController {
 
   @Patch('appointments/:id/status')
   async updateAppointmentStatus(@Param('id') id: string, @Body('status') status: string) {
-    return await this.prisma.appointment.update({
+    const appointment = await this.prisma.appointment.update({
       where: { id },
       data: { status: status as any },
+      include: { pet: true }
     });
+
+    if (status === 'COMPLETADA') {
+      await this.prisma.medicalRecord.create({
+        data: {
+          petId: appointment.petId,
+          doctorId: appointment.doctorId,
+          reason: `Consulta derivada de cita: ${appointment.id}`,
+          symptoms: 'Pendiente de llenar',
+          diagnosis: 'Pendiente de llenar',
+          treatment: 'Pendiente de llenar',
+        }
+      });
+    }
+
+    return appointment;
   }
 
   @Get('triage/alerts')
