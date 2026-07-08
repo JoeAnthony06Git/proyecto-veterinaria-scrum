@@ -40,7 +40,7 @@ export function ConsultationDetailPage() {
 
         <div className="mt-6 space-y-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800">Diagnóstico</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Anamnesis</h2>
             <div className="mt-3 space-y-3">
               <div className="rounded-lg border p-4">
                 <p className="text-xs font-medium uppercase text-gray-500">Motivo</p>

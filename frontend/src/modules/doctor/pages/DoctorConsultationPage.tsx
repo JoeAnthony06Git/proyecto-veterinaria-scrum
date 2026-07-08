@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doctorApi } from '../../../services/api';
 
@@ -20,6 +20,7 @@ interface AppointmentDetail {
   };
   tutor: { name: string; lastName: string; phone: string };
   service: { label: string; description: string };
+  reason?: string;
 }
 
 export function DoctorConsultationPage() {
@@ -37,9 +38,13 @@ export function DoctorConsultationPage() {
   const [prescriptionSaved, setPrescriptionSaved] = useState(false);
   const [prescriptionId, setPrescriptionId] = useState<string | null>(null);
   const [savingPrescription, setSavingPrescription] = useState(false);
+  const [interpretingPrescription, setInterpretingPrescription] = useState(false);
 
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [analyzingTranscript, setAnalyzingTranscript] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (!appointmentId) return;
@@ -55,6 +60,7 @@ export function DoctorConsultationPage() {
           pet: data.pet,
           tutor: data.tutor,
           service: data.service,
+          reason: data.reason,
         });
       })
       .catch(() => setAppointment(null))
@@ -101,11 +107,14 @@ export function DoctorConsultationPage() {
 
   const handleInterpretPrescription = async () => {
     if (!prescriptionId) return;
+    setInterpretingPrescription(true);
     try {
       await doctorApi.interpretPrescription(prescriptionId);
-      alert('Receta interpretada con IA');
+      alert('Receta interpretada con IA exitosamente. Ve a la sección de Recetas para ver el detalle.');
     } catch {
-      alert('Error al interpretar la receta');
+      alert('Error al interpretar la receta. Verifica que Ollama esté corriendo.');
+    } finally {
+      setInterpretingPrescription(false);
     }
   };
 
@@ -119,28 +128,99 @@ export function DoctorConsultationPage() {
     }
   };
 
-  const applyVoiceTranscript = () => {
-    if (!voiceTranscript.trim()) return;
-    const lines = voiceTranscript.split('\n').filter(Boolean);
-    let symptoms = '', diagnosis = '', treatment = '';
-    let currentSection = '';
-    for (const line of lines) {
-      const lower = line.toLowerCase();
-      if (lower.includes('síntoma') || lower.includes('sintoma')) { currentSection = 'symptoms'; continue; }
-      if (lower.includes('diagnóstico') || lower.includes('diagnostico')) { currentSection = 'diagnosis'; continue; }
-      if (lower.includes('tratamiento')) { currentSection = 'treatment'; continue; }
-      if (currentSection === 'symptoms') symptoms += (symptoms ? '\n' : '') + line;
-      if (currentSection === 'diagnosis') diagnosis += (diagnosis ? '\n' : '') + line;
-      if (currentSection === 'treatment') treatment += (treatment ? '\n' : '') + line;
+  const toggleRecording = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      return;
     }
-    setAnamnesis(prev => ({
-      ...prev,
-      symptoms: symptoms || prev.symptoms,
-      diagnosis: diagnosis || prev.diagnosis,
-      treatment: treatment || prev.treatment,
-    }));
-    setVoiceModalOpen(false);
-    setVoiceTranscript('');
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'es-PE';
+
+    recognition.onresult = (event: any) => {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        setVoiceTranscript(prev => (prev ? prev + ' ' : '') + finalTranscript.trim());
+      }
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsRecording(false);
+      if (event.error === 'not-allowed') {
+        alert('Permiso de micrófono denegado. Permite el acceso al micrófono en la configuración de tu navegador.');
+      } else if (event.error === 'no-speech') {
+        alert('No se detectó voz. Intenta hablar más alto o verifica tu micrófono.');
+      } else if (event.error === 'audio-capture') {
+        alert('No se encontró un micrófono. Conecta uno e intenta de nuevo.');
+      }
+    };
+
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+      setIsRecording(true);
+    } catch {
+      setIsRecording(false);
+      alert('Error al iniciar el micrófono. Verifica los permisos del navegador.');
+    }
+  };
+
+  const handleAnalyzeTranscript = async () => {
+    if (!voiceTranscript.trim()) return;
+    setAnalyzingTranscript(true);
+    try {
+      const res = await doctorApi.analyzeTranscript(voiceTranscript, appointment?.reason);
+      const analysis = res.data;
+      setAnamnesis(prev => ({
+        ...prev,
+        reason: analysis.reason || prev.reason,
+        symptoms: analysis.symptoms || prev.symptoms,
+        diagnosis: analysis.diagnosis || prev.diagnosis,
+        treatment: analysis.treatment || prev.treatment,
+      }));
+      setVoiceModalOpen(false);
+      setVoiceTranscript('');
+    } catch {
+      const lines = voiceTranscript.split('\n').filter(Boolean);
+      let symptoms = '', diagnosis = '', treatment = '';
+      let currentSection = '';
+      for (const line of lines) {
+        const lower = line.toLowerCase();
+        if (lower.includes('síntoma') || lower.includes('sintoma')) { currentSection = 'symptoms'; continue; }
+        if (lower.includes('diagnóstico') || lower.includes('diagnostico')) { currentSection = 'diagnosis'; continue; }
+        if (lower.includes('tratamiento')) { currentSection = 'treatment'; continue; }
+        if (currentSection === 'symptoms') symptoms += (symptoms ? '\n' : '') + line;
+        if (currentSection === 'diagnosis') diagnosis += (diagnosis ? '\n' : '') + line;
+        if (currentSection === 'treatment') treatment += (treatment ? '\n' : '') + line;
+      }
+      setAnamnesis(prev => ({
+        ...prev,
+        symptoms: symptoms || prev.symptoms,
+        diagnosis: diagnosis || prev.diagnosis,
+        treatment: treatment || prev.treatment,
+      }));
+      setVoiceModalOpen(false);
+      setVoiceTranscript('');
+    } finally {
+      setAnalyzingTranscript(false);
+    }
   };
 
   if (loading) return <div className="p-10 text-center">Cargando consulta...</div>;
@@ -303,9 +383,10 @@ export function DoctorConsultationPage() {
                   <div className="flex gap-3">
                     <button
                       onClick={handleInterpretPrescription}
-                      className="rounded-lg border border-purple-300 px-6 py-2.5 text-sm font-medium text-purple-700 hover:bg-purple-50"
+                      disabled={interpretingPrescription}
+                      className="rounded-lg border border-purple-300 px-6 py-2.5 text-sm font-medium text-purple-700 hover:bg-purple-50 disabled:opacity-50"
                     >
-                      Interpretar con IA
+                      {interpretingPrescription ? 'Interpretando...' : 'Interpretar con IA'}
                     </button>
                   </div>
                 )}
@@ -319,7 +400,7 @@ export function DoctorConsultationPage() {
               disabled={!anamnesisSaved}
               className="rounded-lg bg-green-600 px-8 py-3 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-50"
             >
-              ✅ Finalizar Consulta
+              Finalizar Consulta
             </button>
           </div>
         </div>
@@ -330,7 +411,7 @@ export function DoctorConsultationPage() {
           <div className="mx-4 w-full max-w-3xl rounded-xl bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-800">Anamnesis por Voz</h2>
-              <button onClick={() => setVoiceModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => { setVoiceModalOpen(false); setVoiceTranscript(''); setIsRecording(false); recognitionRef.current?.stop(); }} className="text-gray-400 hover:text-gray-600">
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -338,21 +419,26 @@ export function DoctorConsultationPage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-gray-700">Grabación</h3>
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100">
+                <div className={`flex flex-col items-center justify-center rounded-lg border-2 p-8 transition-colors ${isRecording ? 'border-red-400 bg-red-50' : 'border-dashed border-gray-300 bg-gray-50'}`}>
+                  <div className={`flex h-20 w-20 items-center justify-center rounded-full transition-colors ${isRecording ? 'bg-red-200 animate-pulse' : 'bg-red-100'}`}>
                     <svg className="h-10 w-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                     </svg>
                   </div>
-                  <p className="mt-4 text-sm font-medium text-gray-700">Presiona para grabar</p>
-                  <p className="text-xs text-gray-500">Whisper procesará el audio localmente</p>
-                  <button className="mt-4 rounded-full bg-red-500 px-8 py-3 text-sm font-semibold text-white hover:bg-red-600">
-                    Comenzar Grabación
+                  <p className="mt-4 text-sm font-medium text-gray-700">
+                    {isRecording ? 'Grabando... Habla claro' : 'Presiona para grabar'}
+                  </p>
+                  <p className="text-xs text-gray-500">Reconocimiento de voz en vivo</p>
+                  <button
+                    onClick={toggleRecording}
+                    className={`mt-4 rounded-full px-8 py-3 text-sm font-semibold text-white transition-colors ${isRecording ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-500 hover:bg-red-600'}`}
+                  >
+                    {isRecording ? 'Detener Grabación' : 'Comenzar Grabación'}
                   </button>
                 </div>
                 <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700">
-                  <p className="font-medium">Whisper (Local)</p>
-                  <p className="mt-1 text-blue-600">La transcripción se procesa localmente. No se envía audio a servicios externos.</p>
+                  <p className="font-medium">Reconocimiento de Voz (Navegador)</p>
+                  <p className="mt-1 text-blue-600">La transcripción se procesa localmente en tu navegador. El texto se enviará al servidor para análisis inteligente.</p>
                 </div>
               </div>
 
@@ -362,19 +448,19 @@ export function DoctorConsultationPage() {
                   rows={8}
                   value={voiceTranscript}
                   onChange={e => setVoiceTranscript(e.target.value)}
-                  placeholder="El texto transcrito aparecerá aquí. También puedes escribir manualmente siguiendo el formato: Síntomas: ... Diagnóstico: ... Tratamiento: ..."
+                  placeholder="Habla y el texto aparecerá aquí. También puedes escribir manualmente."
                   className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
                 />
                 <div className="flex gap-2">
                   <button
-                    onClick={applyVoiceTranscript}
-                    disabled={!voiceTranscript.trim()}
+                    onClick={handleAnalyzeTranscript}
+                    disabled={!voiceTranscript.trim() || analyzingTranscript}
                     className="flex-1 rounded-lg bg-green-600 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
                   >
-                    Aplicar a Anamnesis
+                    {analyzingTranscript ? 'Analizando con IA...' : 'Aplicar a Anamnesis'}
                   </button>
                   <button
-                    onClick={() => { setVoiceModalOpen(false); setVoiceTranscript(''); }}
+                    onClick={() => { setVoiceModalOpen(false); setVoiceTranscript(''); setIsRecording(false); recognitionRef.current?.stop(); }}
                     className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Cancelar

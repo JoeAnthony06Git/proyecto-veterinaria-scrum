@@ -120,6 +120,8 @@ export const doctorApi = {
   createConsultation: (data: object) => api.post('/doctor/consultations', data),
   getConsultation: (id: string) => api.get(`/doctor/consultations/${id}`),
   updateConsultation: (id: string, data: object) => api.patch(`/doctor/consultations/${id}`, data),
+  analyzeTranscript: (transcript: string, appointmentReason?: string) =>
+    api.post<any>('/doctor/consultations/analyze-transcript', { transcript, appointmentReason }),
   listPrescriptions: () => api.get<PrescriptionDto[]>('/doctor/prescriptions'),
   getPrescription: (id: string) => api.get(`/doctor/prescriptions/${id}`),
   createPrescription: (data: object) => api.post('/doctor/prescriptions', data),

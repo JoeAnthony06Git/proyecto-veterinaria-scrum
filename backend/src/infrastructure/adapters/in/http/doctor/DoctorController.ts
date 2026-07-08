@@ -1,15 +1,19 @@
-﻿import { Controller, Get, Post, Body, Param, Patch, Query, UseGuards } from '@nestjs/common';
+﻿import { Controller, Get, Post, Body, Param, Patch, Query, UseGuards, Inject } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/JwtAuthGuard';
 import { RolesGuard, Roles } from '../auth/RolesGuard';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../../../out/persistence/PrismaService';
 import { CurrentUser } from '../auth/CurrentUser';
+import type { IAiService } from '../../../../../domain/ports/out/ai/IAiService';
 
 @Controller('doctor')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.DOCTOR)
 export class DoctorController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('IAiService') private readonly aiService: IAiService,
+  ) {}
 
   @Get('dashboard')
   async getDashboard(@CurrentUser('id') doctorId: string) {
@@ -235,6 +239,11 @@ export class DoctorController {
     });
   }
 
+  @Post('consultations/analyze-transcript')
+  async analyzeTranscript(@Body() body: { transcript: string; appointmentReason?: string }) {
+    return await this.aiService.analyzeTranscript(body.transcript, body.appointmentReason);
+  }
+
   @Get('prescriptions')
   async listPrescriptions(@CurrentUser('id') doctorId: string) {
     const prescriptions = await this.prisma.prescription.findMany({
@@ -293,28 +302,7 @@ export class DoctorController {
 
     if (!prescription) return null;
 
-    const aiInterpretation = {
-      medications: [
-        {
-          name: 'Medicamento recetado',
-          dosage: 'Según indicación médica',
-          duration: 'Según indicación médica',
-          administration: 'Vía oral',
-          sideEffects: 'Consultar con el veterinario',
-        },
-      ],
-      care: {
-        diet: 'Mantener alimentación balanceada',
-        activity: 'Reposo relativo',
-        hydration: 'Agua fresca siempre disponible',
-        followUp: 'Regresar a consulta si no hay mejora en 48h',
-      },
-      warningSigns: [
-        'Vómitos persistentes',
-        'Falta de apetito por más de 24h',
-        'Decaimiento extremo',
-      ],
-    };
+    const aiInterpretation = await this.aiService.interpretPrescription(prescription.originalText);
 
     await this.prisma.prescription.update({
       where: { id },
