@@ -1,4 +1,3 @@
-// P1 - Moreira - Sprint 2: Route Protection con RoleGuard
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { Layout } from '../modules/shared/components/Layout'
