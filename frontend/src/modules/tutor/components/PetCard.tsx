@@ -19,7 +19,7 @@ export function PetCard({ mascota }: PetCardProps) {
           <p className="text-sm text-gray-500">{mascota.raza}</p>
         </div>
       </div>
-      
+
       <div className="mt-4 grid grid-cols-3 gap-3 border-t pt-4 text-center text-sm">
         <div>
           <p className="font-medium text-gray-800">{mascota.especie}</p>
@@ -34,10 +34,10 @@ export function PetCard({ mascota }: PetCardProps) {
           <p className="text-xs text-gray-500">Peso</p>
         </div>
       </div>
-      
+
       <div className="mt-4 flex gap-2">
-        <Link 
-          to={`/tutor/pets/${mascota.id}`} 
+        <Link
+          to={`/tutor/pets/${mascota.id}`}
           className="flex-1 rounded-lg border border-gray-300 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           Ver Perfil

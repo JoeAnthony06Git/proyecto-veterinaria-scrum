@@ -59,8 +59,12 @@ export const usePetStore = create<PetState>((set) => ({
   updatePet: async (id, data) => {
     set({ loading: true, error: null });
     try {
-      await petsApi.update(id, data);
-      set({ loading: false });
+      const { data: actualizada } = await petsApi.update(id, data);
+      set((state) => ({
+        pets: state.pets.map((p) => (p.id === id ? actualizada : p)),
+        currentPet: state.currentPet?.id === id ? { ...state.currentPet, ...actualizada } : state.currentPet,
+        loading: false,
+      }));
     } catch {
       set({ error: 'Error al actualizar mascota', loading: false });
     }

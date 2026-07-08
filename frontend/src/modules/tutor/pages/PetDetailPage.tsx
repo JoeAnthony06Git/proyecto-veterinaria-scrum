@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { usePetStore } from '../../../stores/petStore';
+import { PetFormModal } from '../components/PetFormModal';
 
 function getDaysUntil(dateStr: string): number {
   const diff = new Date(dateStr).getTime() - Date.now();
@@ -28,7 +29,9 @@ function SkeletonLine({ className }: { className?: string }) {
 
 export function PetDetailPage() {
   const { id } = useParams();
-  const { currentPet, fetchPetById, loading } = usePetStore();
+  const { currentPet, fetchPetById, deletePet, loading } = usePetStore();
+  const [mostrarEditar, setMostrarEditar] = useState(false);
+  const [confirmarEliminar, setConfirmarEliminar] = useState(false);
 
   useEffect(() => {
     if (id) fetchPetById(id);
@@ -111,13 +114,37 @@ export function PetDetailPage() {
             <div className="mt-4 space-y-2 text-left text-sm">
               <div className="flex justify-between"><span className="text-gray-500">Especie:</span><span className="font-medium text-gray-800">{currentPet.especie}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Sexo:</span><span className="font-medium text-gray-800">{currentPet.sexo}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Edad:</span><span className="font-medium text-gray-800">{Math.floor((Date.now() - new Date(currentPet.fechaNacimiento).getTime()) / (1000 * 60 * 60 * 24 * 365))} años</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Peso:</span><span className="font-medium text-gray-800">{currentPet.pesoKg} kg</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Color:</span><span className="font-medium text-gray-800">{currentPet.color}</span></div>
             </div>
 
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setMostrarEditar(true)}
+                className="flex-1 rounded-lg border border-gray-300 py-2.5 text-center text-sm font-medium text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
+              >
+                Editar
+              </button>
+              {confirmarEliminar ? (
+                <button
+                  onClick={async () => { await deletePet(currentPet.id); setConfirmarEliminar(false); }}
+                  className="flex-1 rounded-lg bg-red-600 py-2.5 text-center text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                >
+                  Confirmar
+                </button>
+              ) : (
+                <button
+                  onClick={() => setConfirmarEliminar(true)}
+                  className="flex-1 rounded-lg border border-red-200 py-2.5 text-center text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  Eliminar
+                </button>
+              )}
+            </div>
             <Link
               to={`/tutor/appointments/new?petId=${currentPet.id}`}
-              className="mt-4 block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              className="mt-2 block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700 transition-colors"
             >
               Agendar Cita
             </Link>
@@ -189,6 +216,12 @@ export function PetDetailPage() {
           </div>
         </div>
       </div>
+    {mostrarEditar && (
+        <PetFormModal
+          mascota={{ id: currentPet.id, nombre: currentPet.nombre, especie: currentPet.especie, raza: currentPet.raza, sexo: currentPet.sexo, pesoKg: currentPet.pesoKg, tutorId: currentPet.tutorId, color: currentPet.color, fechaNacimiento: currentPet.fechaNacimiento }}
+          onClose={() => { setMostrarEditar(false); fetchPetById(currentPet.id); }}
+        />
+      )}
     </div>
   );
 }

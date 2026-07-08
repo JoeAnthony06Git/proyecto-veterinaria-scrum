@@ -28,13 +28,13 @@ export class PrismaMascotaRepository implements IMascotaRepository {
     const raw = await this.prisma.pet.update({
       where: { id },
       data: {
-        name: mascota.nombre,
-        species: mascota.especie,
-        breed: mascota.raza,
-        sex: mascota.sexo,
-        birthDate: mascota.fechaNacimiento,
-        weightKg: mascota.pesoKg,
-        color: mascota.color,
+        ...(mascota.nombre !== undefined && { name: mascota.nombre }),
+        ...(mascota.especie !== undefined && { species: mascota.especie }),
+        ...(mascota.raza !== undefined && { breed: mascota.raza }),
+        ...(mascota.sexo !== undefined && { sex: mascota.sexo }),
+        ...(mascota.fechaNacimiento !== undefined && { birthDate: new Date(mascota.fechaNacimiento) }),
+        ...(mascota.pesoKg !== undefined && { weightKg: mascota.pesoKg }),
+        ...(mascota.color !== undefined && { color: mascota.color }),
       },
     });
     return this.toDomain(raw);
