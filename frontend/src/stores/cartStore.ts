@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { cartApi } from '../services/api';
-import type { CartItemDto } from '../types';
 
 interface CartState {
-  items: CartItemDto[];
+  items: any[];
   loading: boolean;
   error: string | null;
   fetchCart: () => Promise<void>;
@@ -14,7 +13,7 @@ interface CartState {
   clearError: () => void;
 }
 
-export const useCartStore = create<CartState>((set) => ({
+export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   loading: false,
   error: null,
@@ -30,12 +29,11 @@ export const useCartStore = create<CartState>((set) => ({
   },
 
   addItem: async (productId, quantity = 1) => {
-    set({ loading: true, error: null });
     try {
-      const { data } = await cartApi.addItem(productId, quantity);
-      set((state) => ({ items: [...state.items, data], loading: false }));
+      await cartApi.addItem(productId, quantity);
+      get().fetchCart();
     } catch {
-      set({ error: 'Error al agregar al carrito', loading: false });
+      set({ error: 'Error al agregar' });
     }
   },
 
@@ -48,7 +46,7 @@ export const useCartStore = create<CartState>((set) => ({
         ),
       }));
     } catch {
-      set({ error: 'Error al actualizar cantidad' });
+      set({ error: 'Error al actualizar' });
     }
   },
 
@@ -59,14 +57,15 @@ export const useCartStore = create<CartState>((set) => ({
         items: state.items.filter((item) => item.id !== itemId),
       }));
     } catch {
-      set({ error: 'Error al eliminar del carrito' });
+      set({ error: 'Error al eliminar' });
     }
   },
 
   checkout: async () => {
-    set({ loading: true, error: null });
+    set({ loading: true });
     try {
       await cartApi.checkout();
+      alert('¡Compra realizada con éxito!');
       set({ items: [], loading: false });
     } catch {
       set({ error: 'Error al procesar pago', loading: false });

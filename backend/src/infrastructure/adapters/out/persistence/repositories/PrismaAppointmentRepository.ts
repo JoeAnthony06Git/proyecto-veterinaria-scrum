@@ -3,7 +3,6 @@ import { PrismaService } from '../PrismaService';
 import { IRepositorioCita } from '../../../../../domain/ports/out/database/IAppointmentRepository';
 import { Cita } from '../../../../../domain/entities/Appointment';
 import { EstadoCita } from '../../../../../domain/value-objects/AppointmentStatus';
-import { AppointmentStatus as PrismaStatus } from '@prisma/client';
 
 @Injectable()
 export class PrismaRepositorioCita implements IRepositorioCita {
@@ -19,34 +18,32 @@ export class PrismaRepositorioCita implements IRepositorioCita {
         serviceId: cita.servicioId,
         date: cita.fecha,
         time: cita.hora,
-        status: cita.estado as PrismaStatus,
-        reason: cita.motivo,
+        status: cita.estado as any,
       },
     });
   }
 
   async buscarPorId(id: string): Promise<Cita | null> {
-    const registro = await this.prisma.appointment.findUnique({
+    const r = await this.prisma.appointment.findUnique({
       where: { id },
     });
 
-    if (!registro) return null;
+    if (!r) return null;
 
     return new Cita(
-      registro.id,
-      registro.petId,
-      registro.tutorId,
-      registro.doctorId,
-      registro.serviceId,
-      registro.date,
-      registro.time,
-      registro.status as unknown as EstadoCita,
-      registro.createdAt,
-      registro.reason
+      r.id,
+      r.petId,
+      r.tutorId,
+      r.doctorId,
+      r.serviceId,
+      r.date,
+      r.time,
+      r.status as unknown as EstadoCita,
+      r.createdAt,
     );
   }
 
-    async listarPorTutor(tutorId: string): Promise<any[]> {
+  async listarPorTutor(tutorId: string): Promise<any[]> {
     const registros = await this.prisma.appointment.findMany({
       where: { tutorId },
       include: {
@@ -54,7 +51,7 @@ export class PrismaRepositorioCita implements IRepositorioCita {
         doctor: { select: { name: true, lastName: true } },
         service: { select: { label: true } },
       },
-      orderBy: { date: 'asc' }
+      orderBy: { date: 'asc' },
     });
 
     return registros.map((r: any) => ({
@@ -65,17 +62,17 @@ export class PrismaRepositorioCita implements IRepositorioCita {
       date: r.date.toISOString().split('T')[0],
       time: r.time,
       status: r.status,
-      reason: r.reason
     }));
   }
 
   async listarPorDoctor(doctorId: string): Promise<Cita[]> {
     const registros = await this.prisma.appointment.findMany({
       where: { doctorId },
+      orderBy: { date: 'asc' },
     });
 
     return registros.map(
-      (r) =>
+      (r: any) =>
         new Cita(
           r.id,
           r.petId,
@@ -93,7 +90,7 @@ export class PrismaRepositorioCita implements IRepositorioCita {
   async actualizarEstado(id: string, estado: EstadoCita): Promise<void> {
     await this.prisma.appointment.update({
       where: { id },
-      data: { status: estado as PrismaStatus },
+      data: { status: estado as any },
     });
   }
 }
