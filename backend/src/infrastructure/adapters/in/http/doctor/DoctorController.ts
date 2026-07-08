@@ -106,6 +106,7 @@ export class DoctorController {
       owner: `${pet.tutor.name} ${pet.tutor.lastName}`,
       phone: pet.tutor.phone,
       history: pet.medicalRecords.map((r) => ({
+        id: r.id,
         date: r.date.toISOString(),
         symptoms: r.symptoms,
         diagnosis: r.diagnosis,
@@ -141,6 +142,7 @@ export class DoctorController {
 
     return appointments.map((a) => ({
       id: a.id,
+      petId: a.pet.id,
       pet: a.pet.name,
       owner: `${a.tutor.name} ${a.tutor.lastName}`,
       time: a.time,
@@ -152,31 +154,22 @@ export class DoctorController {
 
   @Get('appointments/:id')
   async getAppointmentById(@Param('id') id: string) {
-    return await this.prisma.appointment.findUnique({ where: { id } });
+    return await this.prisma.appointment.findUnique({
+      where: { id },
+      include: {
+        pet: true,
+        tutor: { select: { name: true, lastName: true, phone: true } },
+        service: true,
+      },
+    });
   }
 
   @Patch('appointments/:id/status')
   async updateAppointmentStatus(@Param('id') id: string, @Body('status') status: string) {
-    const appointment = await this.prisma.appointment.update({
+    return await this.prisma.appointment.update({
       where: { id },
       data: { status: status as any },
-      include: { pet: true }
     });
-
-    if (status === 'COMPLETADA') {
-      await this.prisma.medicalRecord.create({
-        data: {
-          petId: appointment.petId,
-          doctorId: appointment.doctorId,
-          reason: `Consulta derivada de cita: ${appointment.id}`,
-          symptoms: 'Pendiente de llenar',
-          diagnosis: 'Pendiente de llenar',
-          treatment: 'Pendiente de llenar',
-        }
-      });
-    }
-
-    return appointment;
   }
 
   @Get('triage/alerts')
@@ -209,8 +202,37 @@ export class DoctorController {
   }
 
   @Post('consultations')
-  async createConsultation(@Body() data: any) {
-    return await this.prisma.medicalRecord.create({ data });
+  async createConsultation(@CurrentUser('id') doctorId: string, @Body() data: any) {
+    return await this.prisma.medicalRecord.create({
+      data: {
+        petId: data.petId,
+        doctorId,
+        reason: data.reason || '',
+        symptoms: data.symptoms,
+        diagnosis: data.diagnosis,
+        treatment: data.treatment,
+      },
+    });
+  }
+
+  @Get('consultations/:id')
+  async getConsultation(@Param('id') id: string) {
+    return await this.prisma.medicalRecord.findUnique({
+      where: { id },
+      include: {
+        pet: true,
+        doctor: { select: { name: true, lastName: true } },
+        prescriptions: true,
+      },
+    });
+  }
+
+  @Patch('consultations/:id')
+  async updateConsultation(@Param('id') id: string, @Body() data: any) {
+    return await this.prisma.medicalRecord.update({
+      where: { id },
+      data,
+    });
   }
 
   @Get('prescriptions')
@@ -233,9 +255,34 @@ export class DoctorController {
     }));
   }
 
+  @Get('prescriptions/:id')
+  async getPrescription(@Param('id') id: string) {
+    const p = await this.prisma.prescription.findUnique({
+      where: { id },
+      include: { pet: { include: { tutor: true } } },
+    });
+    if (!p) return null;
+    return {
+      id: p.id,
+      pet: p.pet.name,
+      owner: `${p.pet.tutor.name} ${p.pet.tutor.lastName}`,
+      date: p.date.toISOString(),
+      originalText: p.originalText,
+      status: p.status,
+      aiInterpretation: p.aiInterpretation,
+    };
+  }
+
   @Post('prescriptions')
-  async createPrescription(@Body() data: any) {
-    return await this.prisma.prescription.create({ data });
+  async createPrescription(@CurrentUser('id') doctorId: string, @Body() data: any) {
+    return await this.prisma.prescription.create({
+      data: {
+        petId: data.petId,
+        doctorId,
+        medicalRecordId: data.medicalRecordId,
+        originalText: data.originalText,
+      },
+    });
   }
 
   @Post('prescriptions/:id/interpret')

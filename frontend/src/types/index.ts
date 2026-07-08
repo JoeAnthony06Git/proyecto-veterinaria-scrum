@@ -63,6 +63,7 @@ export interface AppointmentDto {
   time: string;
   doctor: string;
   status: AppointmentStatus;
+  reason?: string;
 }
 
 export interface ServiceDto {
@@ -109,6 +110,16 @@ export interface PrescriptionDto {
   date: string;
   text: string;
   status: PrescriptionStatus;
+}
+
+export interface DoctorPrescriptionDetailDto {
+  id: string;
+  pet: string;
+  owner: string;
+  date: string;
+  originalText: string;
+  status: PrescriptionStatus;
+  aiInterpretation: AiInterpretation | null;
 }
 
 export interface PrescriptionDetailDto {
@@ -163,6 +174,7 @@ export interface PatientDetailDto {
 }
 
 export interface MedicalHistoryDto {
+  id: string;
   date: string;
   symptoms: string;
   diagnosis: string;
@@ -180,6 +192,7 @@ export interface DoctorDashboardDto {
 
 export interface DoctorAppointmentDto {
   id: string;
+  petId: string;
   pet: string;
   owner: string;
   time: string;
@@ -195,4 +208,25 @@ export interface TriageAlertDto {
   urgency: string;
   symptoms: string;
   time: string;
+}
+
+export interface ConsultationDetailDto {
+  id: string;
+  pet: string;
+  petId: string;
+  date: string;
+  reason: string | null;
+  symptoms: string;
+  diagnosis: string;
+  treatment: string;
+  doctor: string;
+  prescriptions: PrescriptionSummaryDto[];
+}
+
+export interface PrescriptionSummaryDto {
+  id: string;
+  date: string;
+  originalText: string;
+  status: string;
+  aiInterpretation: unknown;
 }

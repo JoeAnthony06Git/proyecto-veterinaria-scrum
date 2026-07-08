@@ -21,7 +21,8 @@ export function NewAppointmentPage() {
     serviceId: '',
     doctorId: '',
     date: '',
-    time: ''
+    time: '',
+    reason: ''
   });
 
   useEffect(() => {
@@ -53,7 +54,8 @@ export function NewAppointmentPage() {
         doctorId: selection.doctorId,
         serviceId: selection.serviceId,
         date: selection.date,
-        time: selection.time
+        time: selection.time,
+        reason: selection.reason || undefined
       };
       
       await appointmentsApi.create(payload);
@@ -143,12 +145,22 @@ export function NewAppointmentPage() {
         {step === 5 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-800">5. Confirmar</h2>
-            <div className="p-4 bg-gray-50 rounded-xl border border-dashed text-sm">
+            <div className="p-4 bg-gray-50 rounded-xl border border-dashed text-sm space-y-2">
               <p><strong>Mascota:</strong> {pets.find(p => p.id === selection.petId)?.nombre}</p>
               <p><strong>Servicio:</strong> {services.find(s => s.id === selection.serviceId)?.label}</p>
               <p><strong>Doctor:</strong> {doctors.find(d => d.id === selection.doctorId)?.name}</p>
               <p><strong>Fecha:</strong> {selection.date}</p>
               <p><strong>Hora:</strong> {selection.time}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Motivo / Síntomas <span className="text-gray-400">(opcional)</span></label>
+              <textarea
+                value={selection.reason}
+                onChange={(e) => setSelection({ ...selection, reason: e.target.value })}
+                rows={3}
+                className="w-full rounded-xl border border-gray-300 p-3 text-sm resize-none"
+                placeholder="Describe brevemente el motivo de la visita o los síntomas que presenta tu mascota..."
+              />
             </div>
           </div>
         )}

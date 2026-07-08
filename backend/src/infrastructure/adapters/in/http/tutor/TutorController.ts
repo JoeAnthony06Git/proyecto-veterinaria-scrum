@@ -37,7 +37,8 @@ export class TutorController {
       doctorId: datos.doctorId,
       servicioId: datos.serviceId,
       fecha: fecha,
-      hora: datos.time
+      hora: datos.time,
+      motivo: datos.reason
     });
   }
 
@@ -73,6 +74,55 @@ export class TutorController {
       where: { doctorId, status: 'PROGRAMADA' },
       select: { date: true, time: true },
     });
+  }
+
+  @Get('consultations/:id')
+  async obtenerConsulta(@Param('id') id: string) {
+    const record = await this.prisma.medicalRecord.findUnique({
+      where: { id },
+      include: {
+        pet: true,
+        doctor: { select: { name: true, lastName: true } },
+        prescriptions: true,
+      },
+    });
+    if (!record) return null;
+    return {
+      id: record.id,
+      pet: record.pet.name,
+      petId: record.pet.id,
+      date: record.date.toISOString(),
+      reason: record.reason,
+      symptoms: record.symptoms,
+      diagnosis: record.diagnosis,
+      treatment: record.treatment,
+      doctor: `${record.doctor.name} ${record.doctor.lastName}`,
+      prescriptions: record.prescriptions.map((p) => ({
+        id: p.id,
+        date: p.date.toISOString(),
+        originalText: p.originalText,
+        status: p.status,
+        aiInterpretation: p.aiInterpretation,
+      })),
+    };
+  }
+
+  @Get('prescriptions/:id')
+  async obtenerReceta(@Param('id') id: string) {
+    const prescription = await this.prisma.prescription.findUnique({
+      where: { id },
+      include: { pet: { include: { tutor: true } } },
+    });
+    if (!prescription) return null;
+    return {
+      id: prescription.id,
+      petName: prescription.pet.name,
+      owner: `${prescription.pet.tutor.name} ${prescription.pet.tutor.lastName}`,
+      date: prescription.date.toISOString(),
+      status: prescription.status,
+      originalText: prescription.originalText,
+      aiInterpretation: prescription.aiInterpretation,
+    };
   }
 
   @Get('pets')

@@ -10,7 +10,8 @@ export class Cita {
     public readonly fecha: Date,
     public readonly hora: string,
     private _estado: EstadoCita,
-    public readonly creadoEn: Date
+    public readonly creadoEn: Date,
+    public readonly motivo: string | null = null
   ) {}
 
   get estado(): EstadoCita {
@@ -24,7 +25,8 @@ export class Cita {
     doctorId: string,
     servicioId: string,
     fecha: Date,
-    hora: string
+    hora: string,
+    motivo?: string
   ): Cita {
     return new Cita(
       id,
@@ -35,7 +37,8 @@ export class Cita {
       fecha,
       hora,
       EstadoCita.PROGRAMADA,
-      new Date()
+      new Date(),
+      motivo || null
     );
   }
 

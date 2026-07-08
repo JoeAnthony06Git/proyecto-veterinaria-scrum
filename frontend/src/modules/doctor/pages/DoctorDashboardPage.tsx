@@ -13,6 +13,16 @@ export function DoctorDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleAttendTriage = async (alertId: string) => {
+    try {
+      await doctorApi.attendTriage(alertId);
+      const res = await doctorApi.dashboard();
+      setStats(res.data);
+    } catch {
+      // silent
+    }
+  };
+
   if (loading) return <div className="p-10 text-center">Cargando panel...</div>;
   if (!stats) return <div className="p-10 text-center text-red-500">Error al cargar datos.</div>;
 
@@ -49,7 +59,7 @@ export function DoctorDashboardPage() {
             <p className="text-sm text-gray-400">No hay citas pendientes.</p>
           ) : (
             <div className="space-y-3">
-              {stats.appointments.map((c: any) => (
+              {stats.appointments.map((c: DoctorAppointmentDto) => (
                 <div key={c.id} className="flex items-center justify-between rounded-lg border p-3">
                   <div>
                     <p className="font-medium text-gray-800">{c.pet} · {c.service}</p>
@@ -75,7 +85,12 @@ export function DoctorDashboardPage() {
                   <p className="font-medium text-gray-800">{a.pet} · <span className="uppercase text-xs font-bold">{a.urgency}</span></p>
                   <p className="mt-1 text-xs text-gray-600 line-clamp-1">{a.symptoms}</p>
                   <div className="mt-2 flex gap-2">
-                    <button className="rounded bg-blue-600 px-3 py-1 text-xs text-white">Atender</button>
+                    <button
+                      onClick={() => handleAttendTriage(a.id)}
+                      className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
+                    >
+                      Atender
+                    </button>
                   </div>
                 </div>
               ))}

@@ -10,6 +10,7 @@ export interface DatosAgendarCita {
   servicioId: string;
   fecha: Date;
   hora: string;
+  motivo?: string;
 }
 
 @Injectable()
@@ -24,7 +25,8 @@ export class AgendarCitaUseCase {
       datos.doctorId,
       datos.servicioId,
       datos.fecha,
-      datos.hora
+      datos.hora,
+      datos.motivo
     );
 
     await this.repositorioCita.guardar(cita);

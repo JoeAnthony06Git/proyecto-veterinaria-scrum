@@ -92,8 +92,8 @@ export function PetDetailPage() {
                       <p className="font-medium text-gray-800">{c.reason}</p>
                       <p className="text-xs text-gray-500">{new Date(c.date).toLocaleDateString()} · {c.doctor}</p>
                     </div>
-                    <Link to={`/tutor/prescriptions/${c.id}`} className="text-sm text-blue-600 hover:text-blue-500 font-medium">
-                      Ver receta
+                    <Link to={`/tutor/consultations/${c.id}`} className="text-sm text-blue-600 hover:text-blue-500 font-medium">
+                      Ver detalle
                     </Link>
                   </div>
                 ))

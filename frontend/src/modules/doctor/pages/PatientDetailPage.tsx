@@ -50,16 +50,10 @@ export function PatientDetailPage() {
             </div>
             <div className="mt-4 flex gap-2">
               <button
-                onClick={() => navigate(`/doctor/patients/${id}/consultation/new`)}
+                onClick={() => navigate('/doctor/appointments')}
                 className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700"
               >
-                Nueva Consulta
-              </button>
-              <button
-                onClick={() => navigate(`/doctor/prescriptions?petId=${id}`)}
-                className="flex-1 rounded-lg border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Receta
+                Ir a Citas
               </button>
             </div>
           </div>
@@ -72,8 +66,8 @@ export function PatientDetailPage() {
               <p className="text-sm text-gray-400">No hay consultas registradas.</p>
             ) : (
               <div className="space-y-4">
-                {patient.history.map((c: MedicalHistoryDto, i: number) => (
-                  <div key={i} className="rounded-lg border p-4">
+                {patient.history.map((c: MedicalHistoryDto) => (
+                  <div key={c.id} className="rounded-lg border p-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-800">{formatDate(c.date)}</span>
                       <span className="max-w-[50%] truncate rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">{c.diagnosis}</span>

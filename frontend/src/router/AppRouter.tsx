@@ -20,6 +20,8 @@ import { PatientDetailPage } from '../modules/doctor/pages/PatientDetailPage'
 import { DoctorAppointmentsPage } from '../modules/doctor/pages/DoctorAppointmentsPage'
 import { AnamnesisPage } from '../modules/doctor/pages/AnamnesisPage'
 import { PrescriptionsPage } from '../modules/doctor/pages/PrescriptionsPage'
+import { DoctorConsultationPage } from '../modules/doctor/pages/DoctorConsultationPage'
+import { ConsultationDetailPage } from '../modules/tutor/pages/ConsultationDetailPage'
 
 function RootRedirect() {
   const { token, user } = useAuthStore()
@@ -75,8 +77,10 @@ export function AppRouter() {
       <Route path="/doctor/patients" element={<ProtectedDoctor><PatientsPage /></ProtectedDoctor>} />
       <Route path="/doctor/patients/:id" element={<ProtectedDoctor><PatientDetailPage /></ProtectedDoctor>} />
       <Route path="/doctor/appointments" element={<ProtectedDoctor><DoctorAppointmentsPage /></ProtectedDoctor>} />
+      <Route path="/doctor/appointments/:appointmentId/consultation" element={<ProtectedDoctor><DoctorConsultationPage /></ProtectedDoctor>} />
       <Route path="/doctor/anamnesis" element={<ProtectedDoctor><AnamnesisPage /></ProtectedDoctor>} />
       <Route path="/doctor/prescriptions" element={<ProtectedDoctor><PrescriptionsPage /></ProtectedDoctor>} />
+      <Route path="/tutor/consultations/:id" element={<ProtectedTutor><ConsultationDetailPage /></ProtectedTutor>} />
     </Routes>
   )
 }

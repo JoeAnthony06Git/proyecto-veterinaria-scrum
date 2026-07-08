@@ -125,6 +125,7 @@ model Appointment {
   date      DateTime
   time      String
   status    AppointmentStatus @default(PROGRAMADA)
+  reason    String?
   createdAt DateTime         @default(now())
 
   pet     Pet     @relation(fields: [petId], references: [id], onDelete: Cascade)

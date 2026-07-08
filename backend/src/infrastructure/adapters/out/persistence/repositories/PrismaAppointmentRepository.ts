@@ -20,6 +20,7 @@ export class PrismaRepositorioCita implements IRepositorioCita {
         date: cita.fecha,
         time: cita.hora,
         status: cita.estado as PrismaStatus,
+        reason: cita.motivo,
       },
     });
   }
@@ -40,7 +41,8 @@ export class PrismaRepositorioCita implements IRepositorioCita {
       registro.date,
       registro.time,
       registro.status as unknown as EstadoCita,
-      registro.createdAt
+      registro.createdAt,
+      registro.reason
     );
   }
 
@@ -62,7 +64,8 @@ export class PrismaRepositorioCita implements IRepositorioCita {
       service: r.service.label,
       date: r.date.toISOString().split('T')[0],
       time: r.time,
-      status: r.status
+      status: r.status,
+      reason: r.reason
     }));
   }
 

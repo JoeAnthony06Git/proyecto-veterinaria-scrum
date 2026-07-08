@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { doctorApi } from '../../../services/api';
 import { useNavigate } from 'react-router-dom';
+import type { DoctorAppointmentDto } from '../../../types';
 
 export function DoctorAppointmentsPage() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<DoctorAppointmentDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<'today' | 'all'>('all');
   const navigate = useNavigate();
@@ -80,7 +81,7 @@ export function DoctorAppointmentsPage() {
                   {apt.status === 'EN_CURSO' && (
                     <>
                       <button 
-                        onClick={() => navigate(`/doctor/patients`)}
+                        onClick={() => navigate(`/doctor/appointments/${apt.id}/consultation`)}
                         className="bg-orange-500 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition-colors"
                       >
                         ATENDER

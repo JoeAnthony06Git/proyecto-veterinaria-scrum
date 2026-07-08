@@ -17,6 +17,7 @@ import type {
   DoctorAppointmentDto,
   DoctorDashboardDto,
   TriageAlertDto,
+  ConsultationDetailDto,
   UserDto,
 } from '../types';
 
@@ -111,15 +112,23 @@ export const doctorApi = {
   patientById: (id: string) => api.get<PatientDetailDto>(`/doctor/patients/${id}`),
   appointments: (range?: string) =>
     api.get<DoctorAppointmentDto[]>('/doctor/appointments', { params: { range } }),
+  appointmentById: (id: string) => api.get(`/doctor/appointments/${id}`),
   updateAppointmentStatus: (id: string, status: string) =>
     api.patch(`/doctor/appointments/${id}/status`, { status }),
   triageAlerts: () => api.get<TriageAlertDto[]>('/doctor/triage/alerts'),
   attendTriage: (id: string) => api.patch(`/doctor/triage/${id}/attend`),
   createConsultation: (data: object) => api.post('/doctor/consultations', data),
+  getConsultation: (id: string) => api.get(`/doctor/consultations/${id}`),
+  updateConsultation: (id: string, data: object) => api.patch(`/doctor/consultations/${id}`, data),
   listPrescriptions: () => api.get<PrescriptionDto[]>('/doctor/prescriptions'),
+  getPrescription: (id: string) => api.get(`/doctor/prescriptions/${id}`),
   createPrescription: (data: object) => api.post('/doctor/prescriptions', data),
   interpretPrescription: (id: string) =>
     api.post(`/doctor/prescriptions/${id}/interpret`),
+};
+
+export const tutorApi = {
+  getConsultation: (id: string) => api.get<ConsultationDetailDto>(`/tutor/consultations/${id}`),
 };
 
 export default api;
