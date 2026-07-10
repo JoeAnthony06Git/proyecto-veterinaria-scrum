@@ -1,14 +1,16 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { IAiService, AnamnesisAnalysis, AiInterpretation } from '../../../../domain/ports/out/ai/IAiService';
 
 @Injectable()
-export class OllamaAdapter implements IAiService {
-  private baseUrl: string;
-  private model: string;
+export class GeminiAdapter implements IAiService {
+  private model;
 
   constructor() {
-    this.baseUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-    this.model = process.env.OLLAMA_MODEL || 'qwen2.5';
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error('GEMINI_API_KEY no configurada');
+    const genAI = new GoogleGenerativeAI(apiKey);
+    this.model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   }
 
   async analyzeTranscript(transcript: string, appointmentReason?: string): Promise<AnamnesisAnalysis> {
@@ -59,8 +61,9 @@ REGLAS IMPORTANTES (prioridad máxima):
 Responde SOLO con un JSON válido, sin explicaciones adicionales:
 {"reason": "...", "symptoms": "...", "diagnosis": "...", "treatment": "..."}`;
 
-    const data = await this.callOllama(prompt);
-    return JSON.parse(data.response);
+    const result = await this.model.generateContent(prompt);
+    const text = result.response.text();
+    return JSON.parse(this.stripMarkdown(text));
   }
 
   async interpretPrescription(text: string): Promise<AiInterpretation> {
@@ -76,21 +79,21 @@ Con base en tu conocimiento veterinario, genera un JSON enriqueciendo la informa
    Si la receta no especifica algún detalle, usa valores razonables para ese tipo de medicamento.
 
 2. care: Objeto con recomendaciones profesionales ENRIQUECIDAS (no te limites a copiar el texto):
-   - diet: Si la receta menciona dieta, inclúyela y complétala. Si no, recomienda una alimentación 
-     adecuada para la condición (ej: "Alimento balanceado de alta calidad, evitar comida casera. 
+   - diet: Si la receta menciona dieta, inclúyela y complétala. Si no, recomienda una alimentación
+     adecuada para la condición (ej: "Alimento balanceado de alta calidad, evitar comida casera.
      Dividir en 3-4 porciones al día.")
    - activity: Recomendaciones de actividad según la condición
-     (ej: "Paseos cortos 2-3 veces al día, evitar ejercicios intensos durante el tratamiento", 
+     (ej: "Paseos cortos 2-3 veces al día, evitar ejercicios intensos durante el tratamiento",
      o "Reposo absoluto por 48h, luego actividad gradual")
    - hydration: "Agua fresca y limpia siempre disponible. Vigilar que beba lo suficiente."
    - followUp: Cuándo regresar a consulta y qué vigilar
 
-3. warningSigns: Array de señales de alarma que el tutor debe vigilar, específicas para la 
+3. warningSigns: Array de señales de alarma que el tutor debe vigilar, específicas para la
    condición tratada o los medicamentos recetados.
    (ej: ["Vómitos persistentes", "Falta de apetito por más de 24h", "Decaimiento extremo"])
 
-NO te limites a copiar el texto de la receta. APORTA VALOR con recomendaciones 
-profesionales como lo haría un veterinario real. Piensa en qué más necesita 
+NO te limites a copiar el texto de la receta. APORTA VALOR con recomendaciones
+profesionales como lo haría un veterinario real. Piensa en qué más necesita
 saber el tutor para cuidar bien a su mascota.
 
 Responde SOLO con un JSON válido, sin explicaciones adicionales:
@@ -100,26 +103,16 @@ Responde SOLO con un JSON válido, sin explicaciones adicionales:
   "warningSigns": ["...", "..."]
 }`;
 
-    const data = await this.callOllama(prompt);
-    return JSON.parse(data.response);
+    const result = await this.model.generateContent(prompt);
+    const responseText = result.response.text();
+    return JSON.parse(this.stripMarkdown(responseText));
   }
 
-  private async callOllama(prompt: string) {
-    const response = await fetch(`${this.baseUrl}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: this.model,
-        prompt,
-        stream: false,
-        format: 'json',
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Ollama error: ${response.status} ${response.statusText}`);
-    }
-
-    return await response.json();
+  private stripMarkdown(text: string): string {
+    return text
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .replace(/^`|`$/g, '')
+      .trim();
   }
 }
