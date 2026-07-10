@@ -127,10 +127,19 @@ export class DoctorController {
   }
 
   @Get('appointments')
-  async getAppointments(@CurrentUser('id') doctorId: string, @Query('range') range?: string) {
+  async getAppointments(
+    @CurrentUser('id') doctorId: string, 
+    @Query('range') range?: string,
+    @Query('date') dateParam?: string
+  ) {
     const where: any = { doctorId };
 
-    if (range === 'today') {
+    if (dateParam) {
+      const targetDate = new Date(dateParam + 'T00:00:00Z');
+      const nextDay = new Date(targetDate);
+      nextDay.setDate(targetDate.getDate() + 1);
+      where.date = { gte: targetDate, lt: nextDay };
+    } else if (range === 'today') {
       const inicio = new Date();
       inicio.setHours(0, 0, 0, 0);
       const fin = new Date();
@@ -146,7 +155,6 @@ export class DoctorController {
 
     return appointments.map((a) => ({
       id: a.id,
-      petId: a.pet.id,
       pet: a.pet.name,
       owner: `${a.tutor.name} ${a.tutor.lastName}`,
       time: a.time,

@@ -110,8 +110,8 @@ export const doctorApi = {
   dashboard: () => api.get<DoctorDashboardDto>('/doctor/dashboard'),
   patients: () => api.get<PatientDto[]>('/doctor/patients'),
   patientById: (id: string) => api.get<PatientDetailDto>(`/doctor/patients/${id}`),
-  appointments: (range?: string) =>
-    api.get<DoctorAppointmentDto[]>('/doctor/appointments', { params: { range } }),
+  appointments: (range?: string, date?: string) =>
+    api.get<DoctorAppointmentDto[]>('/doctor/appointments', { params: { range, date } }),
   appointmentById: (id: string) => api.get(`/doctor/appointments/${id}`),
   updateAppointmentStatus: (id: string, status: string) =>
     api.patch(`/doctor/appointments/${id}/status`, { status }),
