@@ -4,7 +4,7 @@ import { useAuthStore } from '../../../stores/authStore';
 
 export function RegisterForm() {
   const navigate = useNavigate();
-  const { register, loading, error, clearError } = useAuthStore();
+  const { register, registerLoading, error, clearError } = useAuthStore();
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -116,10 +116,10 @@ export function RegisterForm() {
       </div>
       <button
         type="submit"
-        disabled={loading}
+        disabled={registerLoading}
         className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
       >
-        {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
+        {registerLoading ? 'Creando cuenta...' : 'Crear Cuenta'}
       </button>
     </form>
   );

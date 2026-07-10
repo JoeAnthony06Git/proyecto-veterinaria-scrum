@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { Loading } from '../modules/shared/components/Loading'
 import { Layout } from '../modules/shared/components/Layout'
 import { RoleGuard } from '../modules/shared/guards/RoleGuard'
 import { LoginPage } from '../modules/auth/pages/LoginPage'
@@ -23,7 +25,8 @@ import { DoctorConsultationPage } from '../modules/doctor/pages/DoctorConsultati
 import { ConsultationDetailPage } from '../modules/tutor/pages/ConsultationDetailPage'
 
 function RootRedirect() {
-  const { token, user } = useAuthStore()
+  const { token, user, sessionLoading } = useAuthStore()
+  if (sessionLoading) return <Loading />
   if (!token) return <Navigate to="/login" replace />
   const dashboard = user?.role === 'DOCTOR' ? '/doctor/dashboard' : '/tutor/dashboard'
   return <Navigate to={dashboard} replace />
@@ -54,6 +57,12 @@ function ProtectedDoctor({ children }: { children: React.ReactNode }) {
 }
 
 export function AppRouter() {
+  const initSession = useAuthStore((s) => s.initSession);
+
+  useEffect(() => {
+    initSession();
+  }, [initSession]);
+
   return (
     <Routes>
       <Route path="/" element={<RootRedirect />} />

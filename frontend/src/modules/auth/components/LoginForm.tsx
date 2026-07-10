@@ -4,7 +4,7 @@ import { useAuthStore } from '../../../stores/authStore';
 
 export function LoginForm() {
   const navigate = useNavigate();
-  const { login, loading, error, clearError } = useAuthStore();
+  const { login, loginLoading, error, clearError } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -55,10 +55,10 @@ export function LoginForm() {
       </div>
       <button
         type="submit"
-        disabled={loading}
+        disabled={loginLoading}
         className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
       >
-        {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+        {loginLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
       </button>
     </form>
   );

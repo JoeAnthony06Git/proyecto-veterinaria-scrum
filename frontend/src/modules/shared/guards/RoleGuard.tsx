@@ -9,9 +9,9 @@ interface RoleGuardProps {
 }
 
 export function RoleGuard({ role, children }: RoleGuardProps) {
-  const { token, user, loading } = useAuthStore();
+  const { token, user, sessionLoading } = useAuthStore();
 
-  if (loading) return <Loading />;
+  if (sessionLoading) return <Loading />;
 
   if (!token) return <Navigate to="/login" replace />;
 
