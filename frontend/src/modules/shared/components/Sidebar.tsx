@@ -41,8 +41,8 @@ export function Sidebar({ role }: SidebarProps) {
   return (
     <aside className="flex w-64 flex-col bg-gray-900 text-white">
       <div className="flex h-16 items-center gap-2 border-b border-gray-700 px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-sm font-bold">V</div>
-        <span className="text-lg font-semibold">Veterinaria</span>
+        <img src="/Logo.PNG" alt="Logo VetePet" className="h-8 w-8 rounded-full object-cover" />
+        <span className="text-lg font-semibold">VetePet</span>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems.map((item) => {
