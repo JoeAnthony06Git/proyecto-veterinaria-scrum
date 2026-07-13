@@ -57,8 +57,12 @@ export const petsApi = {
   getById: (id: string) => api.get<PetDetailDto>(`/tutor/pets/${id}`),
   getVaccines: (id: string) => api.get<VaccineRecordDto[]>(`/tutor/pets/${id}/vaccines`),
   getConsultations: (id: string) => api.get<ConsultationSummaryDto[]>(`/tutor/pets/${id}/consultations`),
-  create: (data: FormData | object) => api.post<PetDto>('/tutor/pets', data),
-  update: (id: string, data: object) => api.put<PetDto>(`/tutor/pets/${id}`, data),
+  create: (data: FormData | any) => api.post<PetDto>('/tutor/pets', data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  update: (id: string, data: FormData | any) => api.put<PetDto>(`/tutor/pets/${id}`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
   delete: (id: string) => api.delete(`/tutor/pets/${id}`),
 };
 
@@ -113,7 +117,7 @@ export interface DoctorPrescriptionDetailDto {
   date: string;
   originalText: string;
   status: string;
-  aiInterpretation?: any; // Puedes detallarlo más si lo deseas
+  aiInterpretation?: any;
 }
 
 export interface ConsultationDetailDto {
@@ -136,7 +140,7 @@ export const doctorApi = {
   appointments: (range?: string, date?: string) =>
     api.get<DoctorAppointmentDto[]>('/doctor/appointments', { params: { range, date } }),
   appointmentById: (id: string) => api.get(`/doctor/appointments/${id}`),
-  updateAppointmentStatus: (id: string, status: string) =>
+  AppointmentStatus: (id: string, status: string) =>
     api.patch(`/doctor/appointments/${id}/status`, { status }),
   triageAlerts: () => api.get<TriageAlertDto[]>('/doctor/triage/alerts'),
   attendTriage: (id: string) => api.patch(`/doctor/triage/${id}/attend`),
@@ -158,6 +162,14 @@ export const doctorApi = {
 
 export const tutorApi = {
   getConsultation: (id: string) => api.get<ConsultationDetailDto>(`/tutor/consultations/${id}`),
+  createPet: (formData: FormData) => 
+  api.post('/tutor/pets', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  updatePet: (id: string, formData: FormData) => 
+  api.put(`/tutor/pets/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 };
 
 export default api;

@@ -33,10 +33,18 @@ export function PatientDetailPage() {
         <div className="lg:col-span-1">
           <div className="rounded-xl bg-white p-6 shadow-sm">
             <div className="text-center">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-100">
-                <span className="text-3xl font-bold text-blue-600">
-                  {patient.name ? patient.name[0].toUpperCase() : 'P'}
-                </span>
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-100 overflow-hidden border-4 border-white shadow-sm">
+                {patient.fotoUrl ? (
+                  <img 
+                    src={patient.fotoUrl} 
+                    alt={patient.name} 
+                    className="h-full w-full object-cover" 
+                  />
+                ) : (
+                  <span className="text-3xl font-bold text-blue-600">
+                    {patient.name[0].toUpperCase()}
+                  </span>
+                )}
               </div>
               <h2 className="mt-4 text-xl font-bold text-gray-800">{patient.name}</h2>
               <p className="text-sm text-gray-500">{patient.breed}</p>

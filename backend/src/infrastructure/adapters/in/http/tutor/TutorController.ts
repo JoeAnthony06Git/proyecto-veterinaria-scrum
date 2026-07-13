@@ -1,4 +1,4 @@
-﻿import { Controller, Get, Post, Body, Param, Patch, Put, Delete, UseGuards } from '@nestjs/common';
+﻿import { Controller, Get, Post, Body, Param, Patch, Put, Delete, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/JwtAuthGuard';
 import { RolesGuard, Roles } from '../auth/RolesGuard';
 import { Role } from '@prisma/client';
@@ -11,6 +11,7 @@ import { GetPetsUseCase } from '../../../../../application/use-cases/pets/GetPet
 import { GetPetByIdUseCase } from '../../../../../application/use-cases/pets/GetPetByIdUseCase';
 import { UpdatePetUseCase } from '../../../../../application/use-cases/pets/UpdatePetUseCase';
 import { DeletePetUseCase } from '../../../../../application/use-cases/pets/DeletePetUseCase';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('tutor')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -142,7 +143,9 @@ export class TutorController {
         },
       },
     });
+
     if (!pet) return null;
+
     return {
       id: pet.id,
       nombre: pet.name,
@@ -153,6 +156,7 @@ export class TutorController {
       tutorId: pet.tutorId,
       fechaNacimiento: pet.birthDate.toISOString(),
       color: pet.color,
+      fotoUrl: pet.fotoUrl,
       vaccines: pet.vaccines.map((v) => ({
         id: v.id,
         name: v.name,
@@ -170,8 +174,13 @@ export class TutorController {
   }
 
   @Post('pets')
-  async crearMascota(@CurrentUser('id') tutorId: string, @Body() datos: any) {
-    return await this.createPetUseCase.execute(datos, tutorId);
+  @UseInterceptors(FileInterceptor('file'))
+  async crearMascota(
+    @CurrentUser('id') tutorId: string, 
+    @Body() datos: any,
+    @UploadedFile() file?: any
+  ) {
+    return await this.createPetUseCase.execute(datos, tutorId, file);
   }
 
   @Get('pets/:id/vaccines')
@@ -205,8 +214,14 @@ export class TutorController {
   }
 
   @Put('pets/:id')
-  async actualizarMascota(@CurrentUser('id') tutorId: string, @Param('id') id: string, @Body() datos: any) {
-    return await this.updatePetUseCase.execute(id, datos, tutorId);
+  @UseInterceptors(FileInterceptor('file'))
+  async actualizarMascota(
+    @CurrentUser('id') tutorId: string, 
+    @Param('id') id: string, 
+    @Body() datos: any,
+    @UploadedFile() file?: any
+  ) {
+    return await this.updatePetUseCase.execute(id, datos, tutorId, file);
   }
 
   @Delete('pets/:id')

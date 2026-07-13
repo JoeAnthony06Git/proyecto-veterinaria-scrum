@@ -4,12 +4,15 @@ import type { PetDto } from '../../../types';
 
 interface PetFormModalProps {
   onClose: () => void;
-  mascota?: PetDto & { color?: string; fechaNacimiento?: string };
+  mascota?: PetDto & { color?: string; fechaNacimiento?: string; fotoUrl?: string };
 }
 
 export function PetFormModal({ onClose, mascota }: PetFormModalProps) {
   const { createPet, updatePet, fetchPets, loading } = usePetStore();
   const esEditar = !!mascota;
+
+  const [archivo, setArchivo] = useState<File | null>(null);
+  const [vistaPrevia, setVistaPrevia] = useState<string | null>(mascota?.fotoUrl || null);
 
   const [datos, setDatos] = useState({
     nombre: mascota?.nombre || '',
@@ -21,6 +24,14 @@ export function PetFormModal({ onClose, mascota }: PetFormModalProps) {
     color: mascota?.color || ''
   });
 
+  const manejarCambioArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setArchivo(file);
+      setVistaPrevia(URL.createObjectURL(file));
+    }
+  };
+
   const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -29,14 +40,31 @@ export function PetFormModal({ onClose, mascota }: PetFormModalProps) {
       return;
     }
 
-    if (esEditar && mascota) {
-      await updatePet(mascota.id, datos);
-    } else {
-      await createPet(datos);
+    const formData = new FormData();
+    formData.append('nombre', datos.nombre);
+    formData.append('especie', datos.especie);
+    formData.append('raza', datos.raza);
+    formData.append('sexo', datos.sexo);
+    formData.append('fechaNacimiento', datos.fechaNacimiento);
+    formData.append('pesoKg', datos.pesoKg.toString());
+    formData.append('color', datos.color);
+
+    if (archivo) {
+      formData.append('file', archivo);
     }
 
-    await fetchPets();
-    onClose();
+    try {
+      if (esEditar && mascota) {
+        await updatePet(mascota.id, formData as any);
+      } else {
+        await createPet(formData as any);
+      }
+
+      await fetchPets();
+      onClose();
+    } catch (error) {
+      console.error("Error al guardar mascota:", error);
+    }
   };
 
   return (
@@ -51,7 +79,26 @@ export function PetFormModal({ onClose, mascota }: PetFormModalProps) {
           </button>
         </div>
 
-        <form onSubmit={manejarEnvio} className="p-6 space-y-4">
+        <form onSubmit={manejarEnvio} className="p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+          <div className="flex flex-col items-center mb-4">
+            <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
+              {vistaPrevia ? (
+                <img src={vistaPrevia} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl text-gray-300">🐾</span>
+              )}
+            </div>
+            <label className="mt-2 cursor-pointer bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 transition">
+              {vistaPrevia ? 'Cambiar Foto' : 'Subir Foto'}
+              <input 
+                type="file" 
+                className="hidden" 
+                accept="image/*" 
+                onChange={manejarCambioArchivo} 
+              />
+            </label>
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre *</label>
             <input
@@ -149,7 +196,7 @@ export function PetFormModal({ onClose, mascota }: PetFormModalProps) {
               disabled={loading}
               className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg disabled:bg-blue-300"
             >
-              {loading ? 'Guardando...' : esEditar ? 'Actualizar Mascota' : 'Guardar Mascota'}
+              {loading ? 'Guardando...' : esEditar ? 'Actualizar' : 'Guardar'}
             </button>
           </div>
         </form>

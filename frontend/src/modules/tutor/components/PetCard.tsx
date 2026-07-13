@@ -2,17 +2,25 @@ import { Link } from 'react-router-dom';
 import { type PetDto } from '../../../types';
 
 interface PetCardProps {
-  mascota: PetDto;
+  mascota: PetDto & { fotoUrl?: string };
 }
 
 export function PetCard({ mascota }: PetCardProps) {
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
-          <span className="text-xl font-bold text-blue-600">
-            {mascota.nombre[0].toUpperCase()}
-          </span>
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 overflow-hidden border border-blue-50 flex-shrink-0">
+          {mascota.fotoUrl ? (
+            <img 
+              src={mascota.fotoUrl} 
+              alt={mascota.nombre} 
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="text-xl font-bold text-blue-600">
+              {mascota.nombre[0].toUpperCase()}
+            </span>
+          )}
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-800">{mascota.nombre}</h3>

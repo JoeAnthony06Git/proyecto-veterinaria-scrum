@@ -9,8 +9,8 @@ interface PetState {
   error: string | null;
   fetchPets: () => Promise<void>;
   fetchPetById: (id: string) => Promise<void>;
-  createPet: (data: FormData | object) => Promise<void>;
-  updatePet: (id: string, data: object) => Promise<void>;
+  createPet: (data: FormData | any) => Promise<void>;
+  updatePet: (id: string, data: FormData | any) => Promise<void>;
   deletePet: (id: string) => Promise<void>;
   clearCurrentPet: () => void;
   clearError: () => void;
@@ -27,7 +27,7 @@ export const usePetStore = create<PetState>((set) => ({
     try {
       const { data } = await petsApi.list();
       set({ pets: data, loading: false });
-    } catch (err: any) {
+    } catch {
       set({ error: 'Error al cargar mascotas', loading: false });
     }
   },
@@ -46,12 +46,11 @@ export const usePetStore = create<PetState>((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await petsApi.create(data);
-      // Agregamos la nueva mascota al array existente
       set((state) => ({ 
         pets: [...state.pets, response.data], 
         loading: false 
       }));
-    } catch (err) {
+    } catch {
       set({ error: 'Error al crear mascota', loading: false });
     }
   },

@@ -19,24 +19,18 @@ export class PrismaMascotaRepository implements IMascotaRepository {
         weightKg: mascota.pesoKg,
         color: mascota.color,
         tutorId: mascota.tutorId,
+        fotoUrl: mascota.fotoUrl,
       },
     });
     return this.toDomain(raw);
   }
 
-  async actualizar(id: string, mascota: Partial<Mascota>): Promise<Mascota> {
+  async actualizar(id: string, mascota: any): Promise<Mascota> {
     const raw = await this.prisma.pet.update({
       where: { id },
-      data: {
-        ...(mascota.nombre !== undefined && { name: mascota.nombre }),
-        ...(mascota.especie !== undefined && { species: mascota.especie }),
-        ...(mascota.raza !== undefined && { breed: mascota.raza }),
-        ...(mascota.sexo !== undefined && { sex: mascota.sexo }),
-        ...(mascota.fechaNacimiento !== undefined && { birthDate: new Date(mascota.fechaNacimiento) }),
-        ...(mascota.pesoKg !== undefined && { weightKg: mascota.pesoKg }),
-        ...(mascota.color !== undefined && { color: mascota.color }),
-      },
+      data: mascota,
     });
+
     return this.toDomain(raw);
   }
 
@@ -52,7 +46,7 @@ export class PrismaMascotaRepository implements IMascotaRepository {
 
   async listarPorTutor(tutorId: string): Promise<Mascota[]> {
     const raws = await this.prisma.pet.findMany({ where: { tutorId } });
-    return raws.map(r => this.toDomain(r));
+    return raws.map((r) => this.toDomain(r));
   }
 
   private toDomain(raw: any): Mascota {
@@ -65,7 +59,8 @@ export class PrismaMascotaRepository implements IMascotaRepository {
       raw.birthDate,
       raw.weightKg,
       raw.color,
-      raw.tutorId
+      raw.tutorId,
+      raw.fotoUrl || undefined,
     );
   }
 }

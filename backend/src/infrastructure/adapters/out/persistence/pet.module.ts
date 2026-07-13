@@ -9,6 +9,7 @@ import { UpdatePetUseCase } from '../../../../application/use-cases/pets/UpdateP
 import { DeletePetUseCase } from '../../../../application/use-cases/pets/DeletePetUseCase';
 import { AgendarCitaUseCase } from '../../../../application/use-cases/scheduling/ScheduleAppointmentUseCase';
 import { ObtenerCitasUseCase } from '../../../../application/use-cases/scheduling/GetAppointmentsUseCase';
+import { SupabaseStorageAdapter } from '../storage/SupabaseStorageAdapter';
 
 @Module({
   controllers: [TutorController],
@@ -17,6 +18,7 @@ import { ObtenerCitasUseCase } from '../../../../application/use-cases/schedulin
     PrismaRepositorioCita,
     { provide: 'IMascotaRepository', useClass: PrismaMascotaRepository },
     { provide: 'IRepositorioCita', useClass: PrismaRepositorioCita },
+    {provide: 'IStorageService', useClass: SupabaseStorageAdapter},
     CreatePetUseCase,
     GetPetsUseCase,
     GetPetByIdUseCase,

@@ -103,10 +103,18 @@ export function PetDetailPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
           <div className="rounded-xl bg-white p-6 shadow-sm text-center border">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-100">
-              <span className="text-3xl font-bold text-blue-600">
-                {currentPet.nombre ? currentPet.nombre[0].toUpperCase() : 'P'}
-              </span>
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-100 overflow-hidden border-4 border-white shadow-sm">
+              {currentPet?.fotoUrl ? (
+                <img 
+                  src={currentPet.fotoUrl} 
+                  alt={currentPet.nombre} 
+                  className="h-full w-full object-cover" 
+                />
+              ) : (
+                <span className="text-3xl font-bold text-blue-600">
+                  {currentPet?.nombre ? currentPet.nombre[0].toUpperCase() : '?' }
+                </span>
+              )}
             </div>
             <h2 className="mt-4 text-xl font-bold text-gray-800">{currentPet.nombre}</h2>
             <p className="text-sm text-gray-500">{currentPet.raza}</p>

@@ -84,6 +84,7 @@ model Pet {
   birthDate DateTime
   weightKg  Float
   color     String
+  fotoUrl   String?
   tutorId   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

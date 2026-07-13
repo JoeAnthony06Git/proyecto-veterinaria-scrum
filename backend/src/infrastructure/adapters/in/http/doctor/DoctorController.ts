@@ -83,6 +83,7 @@ export class DoctorController {
       species: p.species,
       breed: p.breed,
       owner: `${p.tutor.name} ${p.tutor.lastName}`,
+      fotoUrl: p.fotoUrl,
       lastVisit: p.medicalRecords[0]?.date.toISOString().split('T')[0] || 'Sin consultas'
     }));
   }
@@ -111,6 +112,7 @@ export class DoctorController {
       weight: `${pet.weightKg} kg`,
       owner: `${pet.tutor.name} ${pet.tutor.lastName}`,
       phone: pet.tutor.phone,
+      fotoUrl: pet.fotoUrl,
       history: pet.medicalRecords.map((r) => ({
         id: r.id,
         date: r.date.toISOString(),
