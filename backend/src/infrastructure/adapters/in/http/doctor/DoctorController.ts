@@ -5,6 +5,7 @@ import { Role } from '@prisma/client';
 import { PrismaService } from '../../../out/persistence/PrismaService';
 import { CurrentUser } from '../auth/CurrentUser';
 import type { IAiService } from '../../../../../domain/ports/out/ai/IAiService';
+import { EmailService } from '../../../../services/email.service';
 
 @Controller('doctor')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -13,6 +14,7 @@ export class DoctorController {
   constructor(
     private readonly prisma: PrismaService,
     @Inject('IAiService') private readonly aiService: IAiService,
+    private readonly emailService: EmailService,
   ) {}
 
   @Get('dashboard')
@@ -276,13 +278,17 @@ export class DoctorController {
   async getPrescription(@Param('id') id: string) {
     const p = await this.prisma.prescription.findUnique({
       where: { id },
-      include: { pet: { include: { tutor: true } } },
+      include: {
+        pet: { include: { tutor: true } },
+        doctor: true,
+      },
     });
     if (!p) return null;
     return {
       id: p.id,
       pet: p.pet.name,
       owner: `${p.pet.tutor.name} ${p.pet.tutor.lastName}`,
+      doctorName: `Dr. ${p.doctor.name} ${p.doctor.lastName}`,
       date: p.date.toISOString(),
       originalText: p.originalText,
       status: p.status,
@@ -292,7 +298,7 @@ export class DoctorController {
 
   @Post('prescriptions')
   async createPrescription(@CurrentUser('id') doctorId: string, @Body() data: any) {
-    return await this.prisma.prescription.create({
+    const prescription = await this.prisma.prescription.create({
       data: {
         petId: data.petId,
         doctorId,
@@ -300,6 +306,97 @@ export class DoctorController {
         originalText: data.originalText,
       },
     });
+
+    let emailStatus = 'no_intentado';
+    try {
+      const sent = await this.sendPrescriptionEmail(prescription.id);
+      emailStatus = sent ? 'enviado' : 'fallo';
+    } catch (err) {
+      emailStatus = 'error';
+    }
+
+    return { ...prescription, emailStatus };
+  }
+
+  @Get('prescriptions/:id/email')
+  async resendPrescriptionEmail(@Param('id') id: string) {
+    try {
+      await this.sendPrescriptionEmail(id);
+      return { message: 'Email enviado correctamente' };
+    } catch (err) {
+      return { message: 'Error al enviar email', error: err.message };
+    }
+  }
+
+  @Get('prescriptions/:id/email-html')
+  async getPrescriptionEmailHtml(@Param('id') id: string) {
+    const html = await this.buildPrescriptionEmailHtml(id);
+    return { html };
+  }
+
+  private async buildPrescriptionEmailHtml(prescriptionId: string): Promise<string> {
+    const params = await this.getPrescriptionEmailParams(prescriptionId);
+    if (!params) return '';
+    return this.emailService.getEmailHtml(params);
+  }
+
+  private async getPrescriptionEmailParams(prescriptionId: string) {
+    const prescription = await this.prisma.prescription.findUnique({
+      where: { id: prescriptionId },
+      include: {
+        doctor: { include: { doctorInfo: true } },
+        pet: { include: { tutor: true } },
+        medicalRecord: true,
+      },
+    });
+    if (!prescription?.pet?.tutor?.email || !prescription.doctor) return null;
+
+    const ai = prescription.aiInterpretation as any;
+    let medicationsHtml = '', careHtml = '', warningHtml = '';
+
+    if (ai) {
+      if (ai.medications?.length) {
+        medicationsHtml = ai.medications.map((m: any) =>
+          `<p style="margin:2px 0;">\u2022 <strong>${m.name}</strong> &mdash; ${m.dosage} &mdash; ${m.administration}${m.duration ? ` &mdash; ${m.duration}` : ''}</p>`
+        ).join('');
+      }
+      if (ai.care) {
+        const items: string[] = [];
+        if (ai.care.diet) items.push(`Alimentaci\u00F3n: ${ai.care.diet}`);
+        if (ai.care.hydration) items.push(`Hidrataci\u00F3n: ${ai.care.hydration}`);
+        if (ai.care.activity) items.push(`Actividad: ${ai.care.activity}`);
+        if (ai.care.followUp) items.push(`Seguimiento: ${ai.care.followUp}`);
+        careHtml = items.map(i => `<p style="margin:2px 0;">\u2022 ${i}</p>`).join('');
+      }
+      if (ai.warningSigns?.length) {
+        warningHtml = ai.warningSigns.map((s: string) =>
+          `<p style="margin:2px 0;">\u26A0 ${s}</p>`
+        ).join('');
+      }
+    }
+
+    return {
+      to: prescription.pet.tutor.email,
+      tutorName: `${prescription.pet.tutor.name} ${prescription.pet.tutor.lastName}`,
+      petName: prescription.pet.name,
+      doctorName: `${prescription.doctor.name} ${prescription.doctor.lastName}`,
+      doctorSpecialty: (prescription.doctor as any)?.doctorInfo?.specialty || 'Medicina General',
+      date: prescription.date.toISOString().split('T')[0],
+      symptoms: prescription.medicalRecord?.symptoms || '',
+      diagnosis: prescription.medicalRecord?.diagnosis || '',
+      treatment: prescription.medicalRecord?.treatment || '',
+      prescriptionId: prescription.id,
+      originalText: prescription.originalText,
+      medications: medicationsHtml || undefined,
+      care: careHtml || undefined,
+      warningSigns: warningHtml || undefined,
+    };
+  }
+
+  private async sendPrescriptionEmail(prescriptionId: string): Promise<boolean> {
+    const params = await this.getPrescriptionEmailParams(prescriptionId);
+    if (!params) return false;
+    return await this.emailService.sendPrescriptionEmail(params);
   }
 
   @Post('prescriptions/:id/interpret')

@@ -22,6 +22,7 @@ import { DoctorAppointmentsPage } from '../modules/doctor/pages/DoctorAppointmen
 import { AnamnesisPage } from '../modules/doctor/pages/AnamnesisPage'
 import { PrescriptionsPage } from '../modules/doctor/pages/PrescriptionsPage'
 import { DoctorConsultationPage } from '../modules/doctor/pages/DoctorConsultationPage'
+import { PrescriptionPreviewPage } from '../modules/doctor/pages/PrescriptionPreviewPage'
 import { ConsultationDetailPage } from '../modules/tutor/pages/ConsultationDetailPage'
 
 function RootRedirect() {
@@ -88,6 +89,7 @@ export function AppRouter() {
       <Route path="/doctor/appointments/:appointmentId/consultation" element={<ProtectedDoctor><DoctorConsultationPage /></ProtectedDoctor>} />
       <Route path="/doctor/anamnesis" element={<ProtectedDoctor><AnamnesisPage /></ProtectedDoctor>} />
       <Route path="/doctor/prescriptions" element={<ProtectedDoctor><PrescriptionsPage /></ProtectedDoctor>} />
+      <Route path="/doctor/prescriptions/:id/preview" element={<RoleGuard role="DOCTOR"><PrescriptionPreviewPage /></RoleGuard>} />
       <Route path="/tutor/consultations/:id" element={<ProtectedTutor><ConsultationDetailPage /></ProtectedTutor>} />
     </Routes>
   )

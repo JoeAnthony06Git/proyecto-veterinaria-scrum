@@ -39,6 +39,10 @@ export function DoctorConsultationPage() {
   const [prescriptionId, setPrescriptionId] = useState<string | null>(null);
   const [savingPrescription, setSavingPrescription] = useState(false);
   const [interpretingPrescription, setInterpretingPrescription] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<string | null>(null);
+  const [emailHtml, setEmailHtml] = useState('');
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [loadingEmailHtml, setLoadingEmailHtml] = useState(false);
 
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
@@ -96,12 +100,28 @@ export function DoctorConsultationPage() {
         medicalRecordId: anamnesisId,
         originalText: prescriptionText,
       });
-      setPrescriptionId((res.data as any).id);
+      const data = res.data as any;
+      setPrescriptionId(data.id);
       setPrescriptionSaved(true);
+      setEmailStatus(data.emailStatus);
     } catch {
       alert('Error al guardar la receta');
     } finally {
       setSavingPrescription(false);
+    }
+  };
+
+  const handleShowEmailContent = async () => {
+    if (!prescriptionId) return;
+    setLoadingEmailHtml(true);
+    try {
+      const res = await doctorApi.getPrescriptionEmailHtml(prescriptionId);
+      setEmailHtml(res.data.html);
+      setShowEmailModal(true);
+    } catch {
+      alert('Error al obtener el contenido del correo');
+    } finally {
+      setLoadingEmailHtml(false);
     }
   };
 
@@ -380,7 +400,7 @@ export function DoctorConsultationPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={handleInterpretPrescription}
                       disabled={interpretingPrescription}
@@ -388,6 +408,36 @@ export function DoctorConsultationPage() {
                     >
                       {interpretingPrescription ? 'Interpretando...' : 'Interpretar con IA'}
                     </button>
+                    <Link
+                      to={`/doctor/prescriptions/${prescriptionId}/preview`}
+                      target="_blank"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-green-300 px-6 py-2.5 text-sm font-medium text-green-700 hover:bg-green-50"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Ver / Imprimir Receta
+                    </Link>
+                  </div>
+                )}
+                {emailStatus && (
+                  <div className="mt-3 space-y-2">
+                    <div className={`text-xs flex items-center gap-1.5 ${emailStatus === 'enviado' ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {emailStatus === 'enviado' ? (
+                        <><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Receta enviada al tutor por correo</>
+                      ) : (
+                        <><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01" /></svg>No se pudo enviar el correo automáticamente</>
+                      )}
+                    </div>
+                    {emailStatus !== 'enviado' && (
+                      <button
+                        onClick={handleShowEmailContent}
+                        disabled={loadingEmailHtml}
+                        className="text-xs text-blue-600 hover:underline disabled:opacity-50"
+                      >
+                        {loadingEmailHtml ? 'Cargando...' : 'Ver contenido del correo y copiar manualmente'}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -405,6 +455,38 @@ export function DoctorConsultationPage() {
           </div>
         </div>
       </div>
+
+      {showEmailModal && emailHtml && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-4xl rounded-xl bg-white p-6 shadow-xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-800">Contenido del correo</h2>
+              <button onClick={() => setShowEmailModal(false)} className="text-gray-400 hover:text-gray-600">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              No se pudo enviar automáticamente. Copia este contenido y pégalo en un correo, WhatsApp, etc.
+            </p>
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => { navigator.clipboard.writeText(emailHtml); alert('Contenido copiado al portapapeles'); }}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Copiar HTML
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto border rounded-lg p-4 bg-gray-50">
+              <iframe
+                srcDoc={emailHtml}
+                title="Vista previa del correo"
+                className="w-full h-full min-h-[400px] bg-white"
+                sandbox=""
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {voiceModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

@@ -127,6 +127,10 @@ export const doctorApi = {
   createPrescription: (data: object) => api.post('/doctor/prescriptions', data),
   interpretPrescription: (id: string) =>
     api.post(`/doctor/prescriptions/${id}/interpret`),
+  getPrescriptionPreview: (id: string) =>
+    api.get<DoctorPrescriptionDetailDto>(`/doctor/prescriptions/${id}`),
+  getPrescriptionEmailHtml: (id: string) =>
+    api.get<{ html: string }>(`/doctor/prescriptions/${id}/email-html`),
 };
 
 export const tutorApi = {

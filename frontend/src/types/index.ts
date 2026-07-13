@@ -116,6 +116,7 @@ export interface DoctorPrescriptionDetailDto {
   id: string;
   pet: string;
   owner: string;
+  doctorName: string;
   date: string;
   originalText: string;
   status: PrescriptionStatus;
