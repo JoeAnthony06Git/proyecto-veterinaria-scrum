@@ -140,7 +140,7 @@ export const doctorApi = {
   appointments: (range?: string, date?: string) =>
     api.get<DoctorAppointmentDto[]>('/doctor/appointments', { params: { range, date } }),
   appointmentById: (id: string) => api.get(`/doctor/appointments/${id}`),
-  AppointmentStatus: (id: string, status: string) =>
+  updateAppointmentStatus: (id: string, status: string) =>
     api.patch(`/doctor/appointments/${id}/status`, { status }),
   triageAlerts: () => api.get<TriageAlertDto[]>('/doctor/triage/alerts'),
   attendTriage: (id: string) => api.patch(`/doctor/triage/${id}/attend`),
