@@ -17,7 +17,6 @@ import type {
   DoctorAppointmentDto,
   DoctorDashboardDto,
   TriageAlertDto,
-  ConsultationDetailDto,
   UserDto,
 } from '../types';
 
@@ -105,6 +104,30 @@ export const prescriptionsApi = {
   getTutorPrescription: (id: string) =>
     api.get<PrescriptionDetailDto>(`/tutor/prescriptions/${id}`),
 };
+
+export interface DoctorPrescriptionDetailDto {
+  id: string;
+  pet: string;
+  owner: string;
+  doctorName: string;
+  date: string;
+  originalText: string;
+  status: string;
+  aiInterpretation?: any; // Puedes detallarlo más si lo deseas
+}
+
+export interface ConsultationDetailDto {
+  id: string;
+  pet: string;
+  petId: string;
+  date: string;
+  reason: string;
+  symptoms: string;
+  diagnosis: string;
+  treatment: string;
+  doctor: string;
+  prescriptions: any[];
+}
 
 export const doctorApi = {
   dashboard: () => api.get<DoctorDashboardDto>('/doctor/dashboard'),

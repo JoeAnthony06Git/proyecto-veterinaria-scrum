@@ -324,7 +324,8 @@ export class DoctorController {
       await this.sendPrescriptionEmail(id);
       return { message: 'Email enviado correctamente' };
     } catch (err) {
-      return { message: 'Error al enviar email', error: err.message };
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      return { message: 'Error al enviar email', error: errorMessage };
     }
   }
 
